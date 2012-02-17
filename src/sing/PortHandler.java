@@ -32,11 +32,18 @@ public class PortHandler
 
     void createPort()
     {
-	port = new Serial(main, Serial.list()[1], 57600 * 2);
-	Main.println("port.available() " + port.available());
+	try
+	{
+	    port = new Serial(main, Serial.list()[1], 57600 * 2);
+	    Main.println("port.available() " + port.available());
+	} catch (Exception e)
+	{
+	    System.err.println(e.getMessage());
+	    System.exit(1);
+	}
     }
 
-    void stop()
+    void exit()
     {
 	port.stop();
 	stopped = true;
@@ -53,12 +60,13 @@ public class PortHandler
 	    return;
 	if (portState == HANDSHAKE && frame < 10)
 	{
-	    main.background(0, 255, 0);
+	    main.background(0, 0x66, 0);
 	    while (port.available() > 0)
 		port.read();
 	    return;
 	} else if (portState == HANDSHAKE)
 	{
+	    main.background(0, 0, 0);
 	    portState = IDLE;
 	}
 
@@ -69,11 +77,6 @@ public class PortHandler
 	    port.write(0);
 	    port.write(1);
 	}
-
-	port.write(2);
-	port.write(9);
-	port.write((byte) ((Math.sin(main.millis() / 1000.0) + 1) * 127));
-	port.write(2);
 
 	while (port.available() >= expectedBytes)
 	{
@@ -93,12 +96,22 @@ public class PortHandler
 		case DATA:
 		    // println("data");
 
-		    byte[] bytes = new byte[expectedBytes];
-		    port.readBytes(bytes);
-		    main.handleCommand(0, bytes);
+		    int[] data = new int[expectedBytes];
+		    for (int i = 0; i < expectedBytes; i++)
+			data[i] = port.read();
+		    main.handleCommand(currentCommand, data);
+
 		    portState = IDLE;
 		    expectedBytes = 1;
 	    }
 	}
+    }
+
+    public void setLED(int ledIndex, int value)
+    {
+	port.write(2);
+	port.write(ledIndex);
+	port.write(value);
+	port.write(2);
     }
 }

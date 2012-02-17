@@ -9,100 +9,100 @@ import controlP5.ControlWindow;
 
 public class Main extends PApplet
 {
-    private static final long serialVersionUID = 1L;
+    static final int BUFFER_SIZE = 128;
 
-    public PortHandler port;
+    PortHandler port;
+    View view;
+    FFT fft;
 
-    ControlP5 cp5;
-
-    int bufferSize = 128;
-    int numAverages = 32;
-    FFT myFFT;
-    float[] srcArray = new float[bufferSize];
-    AudioInput myInput;
+    private Lights lights;
 
     public void setup()
     {
-	port = new PortHandler(this);
 	frameRate(60);
 	smooth();
 	size(600, 400);
-	cp5 = new ControlP5(this);
-
-	ControlWindow cw = cp5.addControlWindow("win", 700, 0, 400, 250);
-	cp5.begin(cw, 10, 10);
-	cp5.addButton("b3").setCaptionLabel("save default");
-	cp5.addButton("b4").setCaptionLabel("load default").setColorBackground(color(0, 100, 50)).linebreak();
-	cp5.addSlider("slider1", 50, 100).linebreak();
-	cp5.addSlider("slider2").linebreak();
-	cp5.addSlider("slider3").linebreak();
-	cp5.addSlider("slider4").linebreak();
-	cp5.addSlider("hello", 0, 100).linebreak();
-	cp5.addToggle("toggleC");
-	cp5.end();
-
+	
+	port = new PortHandler(this);
 	port.createPort();
 
-	Ess.start(this);
-	myInput = new AudioInput(bufferSize / 2);
-
-	myFFT = new FFT(bufferSize);
-	myFFT.equalizer(true);
-	myFFT.smooth = true;
-	float minLimit = .005f;
-	float maxLimit = .05f;
-	myFFT.limits(0.005f, 0.05f);
-	myFFT.damp(0.5f);
-	myFFT.averages(numAverages);
-	float limitDiff = maxLimit - minLimit;
-	myInput.start();
-
-	// cp5.loadProperties(("default.ser"));
+	fft = new FFT(BUFFER_SIZE);
+	fft.averages(32);
+	
+	lights = new Lights(this);
+	
+	view = new View(this);
+	view.init();
     }
 
     public void exit()
     {
-	port.stop();
+	port.exit();
     }
 
     public void draw()
     {
 	port.run();
+	lights.iterate();
     }
 
-    void b3(float v)
+    public void handleCommand(int commandId, int[] data)
     {
-	cp5.saveProperties("default.ser", "default");
-    }
-
-    void b4(float v)
-    {
-	cp5.loadProperties(("default.ser"));
-    }
-
-    public void audioInputData(AudioInput theInput)
-    {
-	myFFT.getSpectrum(myInput);
-    }
-
-    public void handleCommand(int commandId, byte[] bytes)
-    {
-	fill(0);
-	noStroke();
+	fill(0xff002200);
+	stroke(0xff006600);
 	rect(0, 0, 128, 255);
-	stroke(0xff);
-	for (int i = 0; i < bytes.length; i++)
+	stroke(0xff66ff66);
+
+	float[] srcArray = new float[BUFFER_SIZE];
+	for (int i = 0; i < data.length - 1; i++)
 	{
-	    int value = bytes[i];
-	    srcArray[i] = (value - 128) / 255;
-	    point(i, value);
+	    int value = data[i];
+	    line(i, data[i], i + 1, data[i + 1]);
+	    srcArray[i] = ((float) value - 128) / 255;
 	}
 
-	myFFT.getSpectrum(srcArray, 0);
+	fft.getSpectrum(srcArray, 0);
+	float level = constrain(fft.getLevel(srcArray, 0, srcArray.length) * 2.0f - 0.01f, 0, 1);
+	port.setLED(9, 1 + Math.round(level * 254));
+
+	stroke(0xff006600);
+	fill(0, 0x33, 0);
+	rect(128, 0, 10, 255);
+	fill(255, 0, 0);
+	rect(128, 0, 10, 255.0f * level);
+	noFill();
+
 	stroke(255, 0, 0);
-	for (int i = 0; i < bufferSize / 2; i++)
+	for (int i = 0; i < BUFFER_SIZE / 2 - 1; i++)
 	{
-	    point(i, myFFT.spectrum[i] * 200);
+	    line(i * 2, fft.spectrum[i] * 3000, (i + 1) * 2, fft.spectrum[i + 1] * 3000);
 	}
+	
+	lights.setSpectrum(fft.spectrum);
+	
+	stroke(0, 0xff * (lights.low + 0.2f), 0);
+	fill(0, 0xff * lights.low, 0);
+	ellipse(40, 290, 40, 40);
+
+	stroke(0, 0xff * (lights.high + 0.2f), 0);
+	fill(0, 0xff * lights.high, 0);
+	ellipse(40 + 50, 290, 40, 40);
+    }
+
+    public void setDamping(float value)
+    {
+	fft.damp(value);
+    }
+
+    public void setEQ(boolean enabled)
+    {
+	println("setEQ: " + enabled);
+	fft.equalizer(enabled);
+
+    }
+
+    public void setSmoothing(boolean enabled)
+    {
+	fft.smooth = enabled;
     }
 }
