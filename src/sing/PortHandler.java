@@ -84,13 +84,13 @@ public class PortHandler
 	    {
 		case IDLE:
 		    currentCommand = port.read();
-		    // println("currentCommand:" + currentCommand);
+		    main.println("currentCommand:" + currentCommand);
 		    portState = COMMAND;
 		    expectedBytes = 2;
 		    break;
 		case COMMAND:
 		    expectedBytes = port.read() + (port.read() << 8);
-		    // println("expectedBytes: " + expectedBytes);
+		    main.println("expectedBytes: " + expectedBytes);
 		    portState = DATA;
 		    break;
 		case DATA:
