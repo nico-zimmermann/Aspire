@@ -3,8 +3,9 @@ package sing;
 import java.util.ArrayList;
 
 import processing.serial.Serial;
+import sing.util.RGB;
 
-public class PortHandler2 extends Thread
+public class Port extends Thread
 {
     private static final int OFF = 1;
     private static final int LOW = 2;
@@ -12,11 +13,12 @@ public class PortHandler2 extends Thread
     private static final int VERBOSE = LOW;
 
     public int lastLoopDuration;
-    
+    public float[] rgb = new float[Config.LEDS * 3];
+
     private Serial port;
     private Main main;
 
-    public PortHandler2(Main main)
+    public Port(Main main)
     {
 	this.main = main;
     }
@@ -55,8 +57,8 @@ public class PortHandler2 extends Thread
     {
 	int start = main.millis();
 
-	//sendOk();
-	//waitOk();
+	// sendOk();
+	// waitOk();
 	sendRGB();
 	waitOk();
 
@@ -65,11 +67,11 @@ public class PortHandler2 extends Thread
 
     private void sendRGB()
     {
-	for (int i = 0; i < 10; i++)
+	for (int index = 0; index < Config.LEDS; index++)
 	{
-	    float r = main.sin(main.millis() / 200.0f + i * 1.0f) * 0.5f + 0.5f;
-	    float g = main.sin(main.millis() / 800.0f + i * 1.0f) * 0.5f + 0.5f;
-	    float b = main.sin(main.millis() / 300.0f + i * 1.0f) * 0.5f + 0.5f;
+	    float r = rgb[index * 3 + 0];
+	    float g = rgb[index * 3 + 1];
+	    float b = rgb[index * 3 + 2];
 	    setRGB(r, g, b);
 	}
     }
@@ -108,23 +110,43 @@ public class PortHandler2 extends Thread
 	port.write(b);
     }
 
-    public void setRGB(float r, float g, float b)
+    private void setRGB(float r, float g, float b)
     {
 	info("setRGB", HIGH);
 	writeByte((int) (r * 255.0));
 	writeByte((int) (g * 255.0));
 	writeByte((int) (b * 255.0));
     }
-    
+
+    public void setRGB2(int index, double r, double g, double b)
+    {
+	if (r < 0)
+	    r = 0;
+	if (r > 1)
+	    r = 1;
+	if (g < 0)
+	    g = 0;
+	if (g > 1)
+	    g = 1;
+	if (b < 0)
+	    b = 0;
+	if (b > 1)
+	    b = 1;
+	
+	rgb[index * 3 + 0] = (float) r;
+	rgb[index * 3 + 1] = (float) g;
+	rgb[index * 3 + 2] = (float) b;
+    }
+
     private void delay(int time)
     {
-        try
-        {
-            Thread.sleep(time);
-        } catch (InterruptedException e)
-        {
-            e.printStackTrace();
-        }
+	try
+	{
+	    Thread.sleep(time);
+	} catch (InterruptedException e)
+	{
+	    e.printStackTrace();
+	}
     }
 
     private void info(String message)
@@ -143,5 +165,12 @@ public class PortHandler2 extends Thread
 	System.err.println(message);
     }
 
-    
+    public void setRGBs(RGB[] rgbs)
+    {
+	for(int index = 0; index < Config.LEDS; index++)
+	{
+	    RGB rgb = rgbs[index];
+	    setRGB2(index, rgb.r, rgb.g, rgb.b);
+	}
+    }
 }
