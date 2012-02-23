@@ -3,32 +3,34 @@ package sing;
 import java.util.ArrayList;
 
 import processing.serial.Serial;
-import sing.util.RGB;
+import sing.model.RGB;
 
 public class Port extends Thread
 {
-    private static final int OFF = 1;
+    private static final int ON = 1;
     private static final int LOW = 2;
     private static final int HIGH = 3;
     private static final int VERBOSE = LOW;
 
     public int lastLoopDuration;
     public float[] rgb = new float[Config.LEDS * 3];
+    public int[] spectrum = new int[Config.SPECTRUM_SIZE];
+    
+    Serial port;
+    Main main;
+    String portName;
 
-    private Serial port;
-    private Main main;
-
-    public Port(Main main)
+    public Port(Main main, String portName)
     {
 	this.main = main;
+	this.portName = portName;
     }
 
     void createPort()
     {
 	try
 	{
-	    main.println(Serial.list());
-	    port = new Serial(main, Serial.list()[0], 115200);
+	    port = new Serial(main, portName, 115200);
 	    info("Create port... available:" + port.available());
 	    start();
 	} catch (Exception e)
@@ -56,12 +58,8 @@ public class Port extends Thread
     private void loop()
     {
 	int start = main.millis();
-
-	// sendOk();
-	// waitOk();
 	sendRGB();
-	waitOk();
-
+	readOk();
 	lastLoopDuration = main.millis() - start;
     }
 
@@ -76,21 +74,40 @@ public class Port extends Thread
 	}
     }
 
-    private void waitOk()
+    private void readOk()
     {
 	boolean waiting = true;
 	while (waiting)
 	{
 	    if (port.available() == 1)
 	    {
-		if (readByte() != 0)
-		    error("was expecting zero!");
+		int b = 0;
+		if ((b = readByte()) != 0)
+		    error("was expecting zero!: " + b);
 		waiting = false;
 	    }
 	    delay(1);
 	}
     }
 
+    private void readSpectrum()
+    {
+	boolean waiting = true;
+	while (waiting)
+	{
+	    info("readSpectrum: " + port.available());
+	    if (port.available() == Config.SPECTRUM_SIZE)
+	    {
+		for(int i = 0; i < Config.SPECTRUM_SIZE; i++)
+		{
+		    spectrum[i] = readByte();
+		}
+		waiting = false;
+	    }
+	    delay(1);
+	}
+    }
+    
     private void sendOk()
     {
 	info("sendOk", HIGH);
@@ -112,10 +129,10 @@ public class Port extends Thread
 
     private void setRGB(float r, float g, float b)
     {
-	info("setRGB", HIGH);
-	writeByte((int) (r * 255.0));
-	writeByte((int) (g * 255.0));
-	writeByte((int) (b * 255.0));
+	info("setRGB: " + r + " " + g + " " + b, HIGH);
+	writeByte((int) (Math.min(r, 0.6) * 255.0));
+	writeByte((int) (g * 0.85 * 255.0));
+	writeByte((int) (b * 0.5 * 255.0));
     }
 
     public void setRGB2(int index, double r, double g, double b)

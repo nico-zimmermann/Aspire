@@ -1,4 +1,4 @@
-package sing.util;
+package sing.model;
 
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector4d;
@@ -26,6 +26,14 @@ public class SPoint
 	return sPointP.length() / 2.0;
     }
 
+    public double getDistance(Vector3d vector)
+    {
+	Vector3d vPos = (Vector3d) vector.clone();
+	Vector3d thisP = this.getPosition();
+	vPos.sub(thisP);
+	return vPos.length() / 2.0;
+    }
+    
     private Vector3d getPosition()
     {
 	Vector3d result = new Vector3d();

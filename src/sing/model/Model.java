@@ -1,15 +1,17 @@
-package sing;
+package sing.model;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import sing.Config;
+import sing.Main;
 import sing.program.Calibrate;
+import sing.program.Flash;
 import sing.program.Program;
 import sing.program.TwoOppositeParticles;
-import sing.program.TwoParticles;
+import sing.program.SingleSmoothParticle;
+import sing.program.VLines;
 import sing.util.Angle;
-import sing.util.RGB;
-import sing.util.SPoint;
 
 public class Model
 {
@@ -17,11 +19,17 @@ public class Model
     public RGB[] rgb = new RGB[Config.LEDS];
     public List<Program> programs = new ArrayList<Program>();
     public int millis;
-    
-    public TwoParticles twoParticles;
-    public Calibrate calibrate;
     public Main main;
+
+    public double globalAlpha;
+    public double globalPow;
+
+    public SingleSmoothParticle singleSmoothParticle;
+    public Calibrate calibrate;
     public TwoOppositeParticles twoOppositeParticles;
+    public VLines vlines;
+    public Flash flash;
+    public Spectrum spectrum;
 
     public Model()
     {
@@ -34,12 +42,14 @@ public class Model
 
     public void initPrograms()
     {
-	addProgram(twoOppositeParticles = new TwoOppositeParticles());
-	addProgram(twoParticles = new TwoParticles());
 	addProgram(calibrate = new Calibrate());
+	addProgram(twoOppositeParticles = new TwoOppositeParticles());
+	addProgram(singleSmoothParticle = new SingleSmoothParticle());
+	addProgram(vlines = new VLines());
+	addProgram(flash = new Flash());
     }
 
-    public void calib(int index, double azimuth, double inclination)
+    public void calibrateLED(int index, double azimuth, double inclination)
     {
 	positions[index].setAzimuth(Angle.degToRad(azimuth));
 	positions[index].setInclination(Angle.degToRad(inclination));
@@ -48,10 +58,22 @@ public class Model
     public void iterate()
     {
 	clearRGB();
-	
-	for(Program program : programs)
+
+	for (Program program : programs)
 	{
-	    program.iterate();
+	    if (program.enabled && program.alpha < 1)
+		program.alpha += 0.03;
+
+	    if (!program.enabled && program.alpha > 0)
+		program.alpha *= 0.88;
+
+	    if (program.alpha < 0.01)
+		program.alpha = 0;
+	    if (program.alpha > 1)
+		program.alpha = 1;
+
+	    if (program.alpha != 0)
+		program.iterate();
 	}
     }
 
@@ -59,7 +81,8 @@ public class Model
     {
 	program.model = this;
 	program.main = main;
-        programs.add(program);
+	program.spectrum = spectrum;
+	programs.add(program);
     }
 
     public void clearRGB()
@@ -74,6 +97,9 @@ public class Model
 
     public void setRGB(int index, double r, double g, double b)
     {
+	if (index < 0 || index >= rgb.length)
+	    return;
+	
 	rgb[index].r += r;
 	rgb[index].g += g;
 	rgb[index].b += b;

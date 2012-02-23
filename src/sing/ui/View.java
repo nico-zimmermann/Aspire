@@ -2,8 +2,8 @@ package sing.ui;
 
 import sing.Config;
 import sing.Main;
-import sing.Model;
-import sing.util.Interpolation;
+import sing.model.Model;
+import sing.program.Interpolation;
 import controlP5.ControlEvent;
 import controlP5.ControlListener;
 import controlP5.ControlP5;
@@ -26,7 +26,7 @@ public class View
 	public void enable()
 	{
 	    isFree = false;
-	    
+
 	}
 
 	public void disable()
@@ -76,31 +76,122 @@ public class View
 	cp5.end();
     }
 
+    private void createDefaultTab()
+    {
+	cp5.addButton("b3")
+		.setCaptionLabel("save default")
+		.setColorBackground(0xff663333)
+		.setPosition(10, 30)
+		.setSize(100, 20)
+		.addListener(new ControlListener() {
+		    public void controlEvent(ControlEvent theEvent)
+		    {
+			cp5.saveProperties("default.ser", "default");
+		    }
+		});
+
+	cp5.addButton("b4")
+		.setCaptionLabel("load default")
+		.setColorBackground(0xff336633)
+		.setPosition(120, 30)
+		.setSize(100, 20)
+		.addListener(new ControlListener() {
+		    public void controlEvent(ControlEvent theEvent)
+		    {
+			cp5.loadProperties("default.ser");
+		    }
+		});
+
+	cp5.addSlider(getNextName())
+		.setCaptionLabel("GLOBAL ALPHA")
+		.setMin(0.01f)
+		.setMax(5.0f)
+		.setValue(1.0f)
+		.setHeight(20)
+		.setPosition(10, 60)
+		.setSize(300, 20)
+		.addListener(new ControlListener() {
+		    public void controlEvent(ControlEvent theEvent)
+		    {
+			model.globalAlpha = theEvent.getValue();
+		    }
+		})
+		.update();
+
+	cp5.addSlider(getNextName())
+		.setCaptionLabel("GLOBAL POW")
+		.setMin(0.01f)
+		.setMax(20.0f)
+		.setValue(1.0f)
+		.setHeight(20)
+		.setPosition(10, 90)
+		.setSize(300, 20)
+		.addListener(new ControlListener() {
+		    public void controlEvent(ControlEvent theEvent)
+		    {
+			model.globalPow = theEvent.getValue();
+		    }
+		})
+		.update();
+	fpsLabel = cp5.addTextlabel("FPS")
+		.setPosition(10, 10)
+		.setText("HUHU!");
+    }
+
     private void createShapesTab()
     {
 	cp5.addToggle(getNextName())
-	.setCaptionLabel("Two Particles")
-	.moveTo(SHAPES)
-	.setValue(0)
-	.setSize(30, 20)
-	.setPosition(10, 30)
-	.addListener(new ControlListener() {
-	    public void controlEvent(ControlEvent theEvent)
-	    {
-		model.twoParticles.enabled = theEvent.getValue() == 1 ? true : false;
-	    }
-	})
-	.update();
+		.setCaptionLabel("SINGLE SMOOTH")
+		.moveTo(SHAPES)
+		.setValue(0)
+		.setSize(30, 20)
+		.setPosition(10, 30)
+		.addListener(new ControlListener() {
+		    public void controlEvent(ControlEvent theEvent)
+		    {
+			model.singleSmoothParticle.enabled = theEvent.getValue() == 1 ? true : false;
+		    }
+		})
+		.update();
+
 	cp5.addToggle(getNextName())
-	.setCaptionLabel("Two Opposite Particles")
+		.setCaptionLabel("Two Opposite Particles")
+		.moveTo(SHAPES)
+		.setValue(1)
+		.setSize(30, 20)
+		.setPosition(10, 70)
+		.addListener(new ControlListener() {
+		    public void controlEvent(ControlEvent theEvent)
+		    {
+			model.twoOppositeParticles.enabled = theEvent.getValue() == 1 ? true : false;
+		    }
+		})
+		.update();
+
+	cp5.addToggle(getNextName())
+		.setCaptionLabel("VLines")
+		.moveTo(SHAPES)
+		.setValue(0)
+		.setSize(30, 20)
+		.setPosition(10, 110)
+		.addListener(new ControlListener() {
+		    public void controlEvent(ControlEvent theEvent)
+		    {
+			model.vlines.enabled = theEvent.getValue() == 1 ? true : false;
+		    }
+		})
+		.update();
+	
+	cp5.addToggle(getNextName())
+	.setCaptionLabel("Flash")
 	.moveTo(SHAPES)
 	.setValue(0)
 	.setSize(30, 20)
-	.setPosition(10, 70)
+	.setPosition(10, 150)
 	.addListener(new ControlListener() {
 	    public void controlEvent(ControlEvent theEvent)
 	    {
-		model.twoOppositeParticles.enabled = theEvent.getValue() == 1 ? true : false;
+		model.flash.enabled = theEvent.getValue() == 1 ? true : false;
 	    }
 	})
 	.update();
@@ -138,7 +229,7 @@ public class View
 			if (powBlock.isFree())
 			{
 			    linearBlock.enable();
-			    model.calibrate.mode = Interpolation.POW; 
+			    model.calibrate.mode = Interpolation.POW;
 			    linear.setValue(false);
 			    linearBlock.disable();
 			}
@@ -156,7 +247,7 @@ public class View
 			if (linearBlock.isFree())
 			{
 			    powBlock.enable();
-			    model.calibrate.mode = Interpolation.LINEAR; 
+			    model.calibrate.mode = Interpolation.LINEAR;
 			    pow.setValue(false);
 			    powBlock.disable();
 			}
@@ -264,37 +355,6 @@ public class View
 		    }
 		})
 		.update();
-    }
-
-    private void createDefaultTab()
-    {
-	cp5.addButton("b3")
-		.setCaptionLabel("save default")
-		.setColorBackground(0xff663333)
-		.setPosition(10, 30)
-		.setSize(100, 20)
-		.addListener(new ControlListener() {
-		    public void controlEvent(ControlEvent theEvent)
-		    {
-			cp5.saveProperties("default.ser", "default");
-		    }
-		});
-
-	cp5.addButton("b4")
-		.setCaptionLabel("load default")
-		.setColorBackground(0xff336633)
-		.setPosition(120, 30)
-		.setSize(100, 20)
-		.addListener(new ControlListener() {
-		    public void controlEvent(ControlEvent theEvent)
-		    {
-			cp5.loadProperties("default.ser");
-		    }
-		});
-
-	fpsLabel = cp5.addTextlabel("FPS")
-		.setPosition(10, 10)
-		.setText("HUHU!");
     }
 
     private void createLEDTab()

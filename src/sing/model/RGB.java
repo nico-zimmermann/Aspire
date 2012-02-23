@@ -1,4 +1,4 @@
-package sing.util;
+package sing.model;
 
 public class RGB
 {

@@ -1,4 +1,4 @@
-package sing.util;
+package sing.program;
 
 public enum Interpolation
 {
