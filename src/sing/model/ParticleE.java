@@ -2,17 +2,26 @@ package sing.model;
 
 import javax.vecmath.Vector3d;
 
+import quicktime.streaming.NewPresentationParams;
+
 import sing.model.Particle;
 import sing.model.SPoint;
 
 public class ParticleE extends Particle
 {
-    public Vector3d position = new Vector3d();
-
     @Override
-    public double getDistance(SPoint position)
+    public Particle creatViewClone()
     {
-	return position.getDistance(this.position);
+	ParticleE clone = new ParticleE();
+	clone.setFrom(this);
+	clone.position.x = position.x;
+	clone.position.y = position.y;
+	clone.position.z = position.z;
+	return clone;
     }
 
+    @Override
+    public void precalculate()
+    {
+    }
 }

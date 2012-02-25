@@ -5,22 +5,22 @@ import java.util.ArrayList;
 import processing.serial.Serial;
 import sing.model.RGB;
 
-public class Port extends Thread
+public class PortLights extends Thread
 {
     private static final int ON = 1;
     private static final int LOW = 2;
     private static final int HIGH = 3;
     private static final int VERBOSE = LOW;
 
-    public int lastLoopDuration;
+    public long lastLoopDuration;
     public float[] rgb = new float[Config.LEDS * 3];
-    public int[] spectrum = new int[Config.SPECTRUM_SIZE];
-    
+    public int[] spectrum = new int[Config.WAVEFORM_SIZE];
+
     Serial port;
     Main main;
     String portName;
 
-    public Port(Main main, String portName)
+    public PortLights(Main main, String portName)
     {
 	this.main = main;
 	this.portName = portName;
@@ -57,10 +57,11 @@ public class Port extends Thread
 
     private void loop()
     {
-	int start = main.millis();
+	long start = System.currentTimeMillis();
+	main.iterate();
 	sendRGB();
 	readOk();
-	lastLoopDuration = main.millis() - start;
+	lastLoopDuration = System.currentTimeMillis() - start;
     }
 
     private void sendRGB()
@@ -96,9 +97,9 @@ public class Port extends Thread
 	while (waiting)
 	{
 	    info("readSpectrum: " + port.available());
-	    if (port.available() == Config.SPECTRUM_SIZE)
+	    if (port.available() == Config.WAVEFORM_SIZE)
 	    {
-		for(int i = 0; i < Config.SPECTRUM_SIZE; i++)
+		for (int i = 0; i < Config.WAVEFORM_SIZE; i++)
 		{
 		    spectrum[i] = readByte();
 		}
@@ -107,7 +108,7 @@ public class Port extends Thread
 	    delay(1);
 	}
     }
-    
+
     private void sendOk()
     {
 	info("sendOk", HIGH);
@@ -149,7 +150,7 @@ public class Port extends Thread
 	    b = 0;
 	if (b > 1)
 	    b = 1;
-	
+
 	rgb[index * 3 + 0] = (float) r;
 	rgb[index * 3 + 1] = (float) g;
 	rgb[index * 3 + 2] = (float) b;
@@ -184,7 +185,7 @@ public class Port extends Thread
 
     public void setRGBs(RGB[] rgbs)
     {
-	for(int index = 0; index < Config.LEDS; index++)
+	for (int index = 0; index < Config.LEDS; index++)
 	{
 	    RGB rgb = rgbs[index];
 	    setRGB2(index, rgb.r, rgb.g, rgb.b);

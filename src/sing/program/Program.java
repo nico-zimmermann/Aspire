@@ -1,22 +1,33 @@
 package sing.program;
 
+import javax.vecmath.Vector3d;
+
 import sing.Config;
 import sing.Main;
-import sing.model.Model;
+import sing.model.Analyzer;
+import sing.model.LED;
+import sing.model.Programms;
 import sing.model.Particle;
 import sing.model.SPoint;
-import sing.model.Spectrum;
 
-public abstract class Program
+public abstract class Program<T>
 {
-    public Model model;
+    public Programms model;
     public Main main;
 
     public boolean enabled = false;
     public double alpha = 0;
-    public Spectrum spectrum;
+    public Analyzer spectrum;
+    public boolean disabled;
+    public int channelIndex;
 
     public abstract void iterate();
+
+    public T disable()
+    {
+	disabled = true;
+	return (T) this;
+    }
 
     public void show(Particle particle)
     {
@@ -25,19 +36,27 @@ public abstract class Program
 
     public void show(Particle particle, Interpolation interpolation)
     {
+	particle.precalculate();
+	if (disabled)
+	    return;
 	for (int index = 0; index < Config.LEDS; index++)
 	{
-	    SPoint position = getLED(index);
+	    LED led = getLED(index);
 
 	    double energy = 0;
+	    
+	    double dx = led.positionV.x - particle.position.x;
+	    double dy = led.positionV.y - particle.position.y;
+	    double dz = led.positionV.z - particle.position.z;
+	    double dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / 2.0;
 
 	    switch (interpolation)
 	    {
 		case LINEAR:
-		    energy = particle.radius - particle.getDistance(position);
+		    energy = particle.radius - dist;
 		    break;
 		case POW:
-		    double near = 1 - particle.getDistance(position);
+		    double near = 1 - dist;
 		    energy = Math.pow(near, (1 - particle.radius) * 8);
 		    break;
 	    }
@@ -47,19 +66,26 @@ public abstract class Program
 
 	    setRGB(index, particle.color.r * energy, particle.color.g * energy, particle.color.b * energy);
 	}
+	
+	Particle clone = particle.creatViewClone();
+	clone.color.alpha = spectrum.bands.get(channelIndex).energySmooth;
+	model.particles1.add(clone);
     }
 
-    public SPoint getLED(int index)
+    public LED getLED(int index)
     {
-	return model.positions[index];
+	return model.leds[index];
     }
 
     public void setRGB(int index, double r, double g, double b)
     {
+	double energy = spectrum.bands.get(channelIndex).energySmooth;
+	
 	model.setRGB(index,
-		Math.pow(r * alpha * model.globalAlpha, model.globalPow),
-		Math.pow(g * alpha * model.globalAlpha, model.globalPow),
-		Math.pow(b * alpha * model.globalAlpha, model.globalPow)
+		//Math.pow(r * alpha * model.globalAlpha, model.globalPow),
+		//Math.pow(g * alpha * model.globalAlpha, model.globalPow),
+		//Math.pow(b * alpha * model.globalAlpha, model.globalPow)
+		r * energy, g * energy, b * energy
 		);
     }
 
@@ -76,5 +102,9 @@ public abstract class Program
     public int millis()
     {
 	return model.millis;
+    }
+
+    public void init()
+    {
     }
 }

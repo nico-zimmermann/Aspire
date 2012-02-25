@@ -1,13 +1,9 @@
 package sing.program;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import sing.model.Particle;
+import sing.Config;
 import sing.model.ParticleS;
-import sing.util.Angle;
 
-public class SingleSmoothParticle extends Program
+public class SingleSmoothParticle extends Program<SingleSmoothParticle>
 {
     private ParticleS particle;
 
@@ -20,14 +16,14 @@ public class SingleSmoothParticle extends Program
     public void iterate()
     {
 	particle.rnd1 = 1;
-	particle.radius = 0.8;
-	particle.color.r = sin1(millis() / 1000.0);
-	particle.color.g = sin1(millis() / 1300.0 + Math.PI) * 0.1;
-	particle.color.b = sin1(millis() / 1000.0 + Math.PI * 1.4) * 0.6;
+	particle.radius = 0.5;
+	particle.color.r = sin1(channelIndex * Math.PI / 5);
+	particle.color.g = sin1(channelIndex * Math.PI / 5 + Math.PI / 2);
+	particle.color.b = 0;
 
-	particle.position.azimuth += 0.05 + (Math.sin(millis() / (3000.0 - particle.rnd1 * 1000) + particle.rnd1) * 0.5 + 0.5) * 0.02;
-	particle.position.inclination = Angle.degToRad((Math.sin(millis() / (2000.0 - particle.rnd1 * 500) + particle.rnd1 * 3) * 0.5 + 0.5) * (180.0 - 40.0) + 20.0);
-
+	particle.positionS.azimuth = channelIndex * Math.PI / (Config.BANDS_NUM / 2) + (channelIndex * 0.00001 * millis());
+	particle.positionS.inclination = Math.PI / 2;
+	
 	show(particle);
     }
 }

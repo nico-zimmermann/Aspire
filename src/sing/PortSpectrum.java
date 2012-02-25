@@ -16,7 +16,7 @@ public class PortSpectrum extends Thread
     private Main main;
     
     public int lastLoopDuration;
-    public int[] spectrum = new int[Config.SPECTRUM_SIZE];
+    public int[] waveform = new int[Config.WAVEFORM_SIZE];
     
     int spectrumIndex = 0;
     String portName;
@@ -59,22 +59,23 @@ public class PortSpectrum extends Thread
     {
 	int start = main.millis();
 
-	readSpectrum();
+	readWaveform();
+	main.handleWaveform();
 
 	lastLoopDuration = main.millis() - start;
     }
 
-    private void readSpectrum()
+    private void readWaveform()
     {
 	boolean waiting = true;
 	while (waiting)
 	{
-	    info("readSpectrum: " + port.available(), HIGH);
-	    if (port.available() >= Config.SPECTRUM_SIZE)
+	    info("readWaveform: " + port.available(), HIGH);
+	    if (port.available() >= Config.WAVEFORM_SIZE)
 	    {
-		for(int i = 0; i < Config.SPECTRUM_SIZE; i++)
+		for(int i = 0; i < Config.WAVEFORM_SIZE; i++)
 		{
-		    spectrum[i] = readByte();
+		    waveform[i] = readByte() + 9;
 		}
 		waiting = false;
 	    }

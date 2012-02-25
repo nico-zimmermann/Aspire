@@ -2,7 +2,7 @@ package sing.ui;
 
 import sing.Config;
 import sing.Main;
-import sing.model.Model;
+import sing.model.Programms;
 import sing.program.Interpolation;
 import controlP5.ControlEvent;
 import controlP5.ControlListener;
@@ -26,7 +26,6 @@ public class View
 	public void enable()
 	{
 	    isFree = false;
-
 	}
 
 	public void disable()
@@ -37,18 +36,15 @@ public class View
 
     private static final String SHAPES = "SHAPES";
     private static final String SOUND = "SOUND";
-    private static final String LED = "LED";
     private static final String CALIBRATE = "CALIBRATE";
 
     private static int COMPONENT_ID = 0;
 
-    public Textlabel fpsLabel;
-
     final Main main;
     ControlP5 cp5;
-    private final Model model;
+    private final Programms model;
 
-    public View(Main main, Model model)
+    public View(Main main, Programms model)
     {
 	this.main = main;
 	this.model = model;
@@ -58,19 +54,19 @@ public class View
     {
 	cp5 = new ControlP5(main);
 
-	ControlWindow cw = cp5.addControlWindow("win", 700, 0, 400, 600);
+	// ControlP5 cw = cp5;
+	ControlWindow cw = cp5.addControlWindow("win", 0, 665, 582, 300);
+	cw.frameRate(2);
 	cp5.begin(cw);
 
 	cw.getTab("default").setHeight(20);
-	cw.addTab(CALIBRATE).setHeight(20);
-	cw.addTab(LED).setHeight(20);
 	cw.addTab(SOUND).setHeight(20);
+	cw.addTab(CALIBRATE).setHeight(20);
 	cw.addTab(SHAPES).setHeight(20);
 
 	createDefaultTab();
-	createCalibrateTab();
-	createLEDTab();
 	createSoundTab();
+	createCalibrateTab();
 	createShapesTab();
 
 	cp5.end();
@@ -133,9 +129,6 @@ public class View
 		    }
 		})
 		.update();
-	fpsLabel = cp5.addTextlabel("FPS")
-		.setPosition(10, 10)
-		.setText("HUHU!");
     }
 
     private void createShapesTab()
@@ -143,7 +136,7 @@ public class View
 	cp5.addToggle(getNextName())
 		.setCaptionLabel("SINGLE SMOOTH")
 		.moveTo(SHAPES)
-		.setValue(0)
+		.setValue(1)
 		.setSize(30, 20)
 		.setPosition(10, 30)
 		.addListener(new ControlListener() {
@@ -151,8 +144,7 @@ public class View
 		    {
 			model.singleSmoothParticle.enabled = theEvent.getValue() == 1 ? true : false;
 		    }
-		})
-		.update();
+		}).update();
 
 	cp5.addToggle(getNextName())
 		.setCaptionLabel("Two Opposite Particles")
@@ -165,13 +157,12 @@ public class View
 		    {
 			model.twoOppositeParticles.enabled = theEvent.getValue() == 1 ? true : false;
 		    }
-		})
-		.update();
+		}).update();
 
 	cp5.addToggle(getNextName())
 		.setCaptionLabel("VLines")
 		.moveTo(SHAPES)
-		.setValue(0)
+		.setValue(1)
 		.setSize(30, 20)
 		.setPosition(10, 110)
 		.addListener(new ControlListener() {
@@ -179,22 +170,48 @@ public class View
 		    {
 			model.vlines.enabled = theEvent.getValue() == 1 ? true : false;
 		    }
+		}).update();
+
+	cp5.addToggle(getNextName())
+		.setCaptionLabel("Flash")
+		.moveTo(SHAPES)
+		.setValue(1)
+		.setSize(30, 20)
+		.setPosition(10, 150)
+		.addListener(new ControlListener() {
+		    public void controlEvent(ControlEvent theEvent)
+		    {
+			model.flash.enabled = theEvent.getValue() == 1 ? true : false;
+		    }
+		}).update();
+
+	cp5.addToggle(getNextName())
+		.setCaptionLabel("Bands")
+		.moveTo(SHAPES)
+		.setValue(1)
+		.setSize(30, 20)
+		.setPosition(10, 190)
+		.addListener(new ControlListener() {
+		    public void controlEvent(ControlEvent theEvent)
+		    {
+			model.bands.enabled = theEvent.getValue() == 1 ? true : false;
+		    }
+		}).update();
+
+	cp5.addToggle(getNextName())
+		.setCaptionLabel("Flash2")
+		.moveTo(SHAPES)
+		.setValue(1)
+		.setSize(30, 20)
+		.setPosition(10, 230)
+		.addListener(new ControlListener() {
+		    public void controlEvent(ControlEvent theEvent)
+		    {
+			model.flash2.enabled = theEvent.getValue() == 1 ? true : false;
+		    }
 		})
 		.update();
-	
-	cp5.addToggle(getNextName())
-	.setCaptionLabel("Flash")
-	.moveTo(SHAPES)
-	.setValue(0)
-	.setSize(30, 20)
-	.setPosition(10, 150)
-	.addListener(new ControlListener() {
-	    public void controlEvent(ControlEvent theEvent)
-	    {
-		model.flash.enabled = theEvent.getValue() == 1 ? true : false;
-	    }
-	})
-	.update();
+
     }
 
     private void createCalibrateTab()
@@ -266,7 +283,7 @@ public class View
 		.addListener(new ControlListener() {
 		    public void controlEvent(ControlEvent theEvent)
 		    {
-			model.calibrate.reference.position.setAzimuth(theEvent.getValue() * Math.PI / 180.0);
+			model.calibrate.reference.positionS.azimuth = theEvent.getValue() * Math.PI / 180.0;
 		    }
 		})
 		.update();
@@ -283,7 +300,7 @@ public class View
 		.addListener(new ControlListener() {
 		    public void controlEvent(ControlEvent theEvent)
 		    {
-			model.calibrate.reference.position.setInclination(theEvent.getValue() * Math.PI / 180.0);
+			model.calibrate.reference.positionS.inclination = theEvent.getValue() * Math.PI / 180.0;
 		    }
 		})
 		.update();
@@ -325,7 +342,7 @@ public class View
 		.addListener(new ControlListener() {
 		    public void controlEvent(ControlEvent theEvent)
 		    {
-			main.setDamping(theEvent.getValue());
+			//main.setDamping(theEvent.getValue());
 		    }
 		})
 		.update();
@@ -338,91 +355,66 @@ public class View
 		.addListener(new ControlListener() {
 		    public void controlEvent(ControlEvent theEvent)
 		    {
-			main.setEQ(theEvent.getValue() == 1 ? true : false);
+			//main.setEQ(theEvent.getValue() == 1 ? true : false);
 		    }
 		})
 		.update();
 
 	cp5.addToggle("SMOOTH")
 		.moveTo(SOUND)
-		.setValue(1)
+		.setValue(0)
 		.setSize(30, 20)
 		.setPosition(50, 90)
 		.addListener(new ControlListener() {
 		    public void controlEvent(ControlEvent theEvent)
 		    {
-			main.setSmoothing(theEvent.getValue() == 1 ? true : false);
-		    }
-		})
-		.update();
-    }
-
-    private void createLEDTab()
-    {
-	cp5.addToggle("USE")
-		.moveTo(LED)
-		.setValue(0)
-		.setSize(30, 20)
-		.setPosition(10, 30)
-		.addListener(new ControlListener() {
-		    public void controlEvent(ControlEvent theEvent)
-		    {
+			//main.setSmoothing(theEvent.getValue() == 1 ? true : false);
 		    }
 		})
 		.update();
 
-	for (int index = 0; index < Config.LEDS; index++)
-	    createColorSlider(index);
-    }
-
-    private void createColorSlider(int index)
-    {
-	createChannelSlider(index, 0);
-	createChannelSlider(index, 1);
-	createChannelSlider(index, 2);
-
-	cp5.addToggle("LED " + index)
-		.moveTo(LED)
-		.setValue(0)
-		.setSize(30, 20)
-		.setPosition(200, 70 + index * 50)
+	cp5.addToggle(getNextName())
+		.moveTo(SOUND)
+		.setCaptionLabel("show bands")
+		.setPosition(10, 130)
+		.setSize(50, 20)
 		.addListener(new ControlListener() {
 		    public void controlEvent(ControlEvent theEvent)
 		    {
-		    }
-		})
-		.update();
-
-    }
-
-    private void createChannelSlider(int index, int channel)
-    {
-	Slider slider = cp5.addSlider("LED " + index + " - CH " + channel)
-		.moveTo(LED)
-		.setMin(0)
-		.setMax(1)
-		.setValue(0.0f)
-		.setHeight(20)
-		.setPosition(10, 70 + channel * 12 + index * 50)
-		.setSize(100, 10)
-		.addListener(new ControlListener() {
-		    public void controlEvent(ControlEvent theEvent)
-		    {
-			//
+			model.showBands = theEvent.getValue() == 1 ? true : false;
 		    }
 		});
-	switch (channel)
-	{
-	    case 0:
-		slider.setColorBackground(0xff993333);
-		slider.setColorForeground(0xffff6666);
-		slider.setColorActive(0xffff9999);
-		break;
-	    case 1:
-		slider.setColorBackground(0xff339933);
-		slider.setColorForeground(0xff66cc66);
-		slider.setColorActive(0xff99cc99);
-		break;
-	}
+
+	cp5.addSlider("offset")
+		.moveTo(SOUND)
+		.setMin(-0.5f)
+		.setMax(0.5f)
+		.setValue(-0.05f)
+		.setHeight(20)
+		.setPosition(10, 170)
+		.setSize(100, 20)
+		.addListener(new ControlListener() {
+		    public void controlEvent(ControlEvent theEvent)
+		    {
+			main.analyzer.offset = theEvent.getValue();
+		    }
+		})
+		.update();
+
+	cp5.addSlider("mul")
+		.moveTo(SOUND)
+		.setMin(0)
+		.setMax(10)
+		.setValue(1.00f)
+		.setHeight(20)
+		.setPosition(10, 210)
+		.setSize(100, 20)
+		.addListener(new ControlListener() {
+		    public void controlEvent(ControlEvent theEvent)
+		    {
+			main.analyzer.mul = theEvent.getValue();
+		    }
+		})
+		.update();
     }
 }
