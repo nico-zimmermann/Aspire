@@ -1,8 +1,10 @@
-package sing;
+package sing.remote;
 
 import java.util.ArrayList;
 
 import processing.serial.Serial;
+import sing.Config;
+import sing.Main;
 import sing.model.RGB;
 
 public class PortLights extends Thread
@@ -26,11 +28,12 @@ public class PortLights extends Thread
 	this.portName = portName;
     }
 
-    void createPort()
+    public void createPort()
     {
 	try
 	{
 	    port = new Serial(main, portName, 115200);
+	    //new FakeSerialLights(port);
 	    info("Create port... available:" + port.available());
 	    start();
 	} catch (Exception e)
@@ -40,7 +43,7 @@ public class PortLights extends Thread
 	}
     }
 
-    void exit()
+    public void exit()
     {
 	port.stop();
     }

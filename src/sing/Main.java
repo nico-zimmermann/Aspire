@@ -8,8 +8,10 @@ import processing.core.PApplet;
 import processing.serial.Serial;
 import sing.model.Analyzer;
 import sing.model.Band;
-import sing.model.Programms;
 import sing.model.Particle;
+import sing.model.Programms;
+import sing.remote.PortLights;
+import sing.remote.PortWaveform;
 import sing.ui.View;
 
 public class Main extends PApplet
@@ -17,7 +19,7 @@ public class Main extends PApplet
     public Analyzer analyzer;
 
     PortLights portLights;
-    PortSpectrum portWaveform;
+    PortWaveform portWaveform;
     View view;
     Programms model;
 
@@ -28,6 +30,8 @@ public class Main extends PApplet
     public boolean inDraw;
 
     public boolean waitForModelDraw;
+
+    public boolean hideView;
 
     public void setup()
     {
@@ -59,7 +63,7 @@ public class Main extends PApplet
 	portLights = new PortLights(this, "/dev/tty.usbmodemfa131");
 	portLights.createPort();
 
-	portWaveform = new PortSpectrum(this, "/dev/tty.usbmodemfd121");
+	portWaveform = new PortWaveform(this, "/dev/tty.usbmodemfd121");
 	portWaveform.createPort();
 
 	view = new View(this, model);
@@ -84,13 +88,16 @@ public class Main extends PApplet
 
     public void draw()
     {
-	frameRate(60);
+	frameRate(hideView ? 10 : 30);
 	measureStats();
 	background(0);
-	drawAudio();
-	drawBands();
-	drawStats();
-	drawModel();
+	if (!hideView)
+	{
+	    drawAudio();
+	    drawBands();
+	    drawStats();
+	    drawModel();
+	}
     }
 
     public void handleWaveform()
@@ -277,9 +284,15 @@ public class Main extends PApplet
 	rect(Config.WAVEFORM_SIZE * 2 + 30 + 20, 255 + 10, 10, -255.0f * (float) analyzer.levelSpring);
 	noFill();
 
+		
+	stroke(Config.COLOR_BRIGHT);
+	double cutY = 255 - analyzer.cutoff * 255 + 10;
+	line(Config.WAVEFORM_SIZE + 22, (float)cutY, Config.WAVEFORM_SIZE * 2 + 22, (float)cutY);
 	// fft
 	for (int i = 0; i < Config.SPECTRUM_SIZE - 1; i++)
 	{
+	    stroke(Config.COLOR_MEDIUM);
+	    line(i * 2 + Config.WAVEFORM_SIZE + 22, (float) (255 - analyzer.fft.spectrum[i] * analyzer.fftScale * 255 + 10), i * 2 + Config.WAVEFORM_SIZE + 22, 255 + 10);
 	    stroke(Config.COLOR_BRIGHT);
 	    line(i * 2 + Config.WAVEFORM_SIZE + 22, (float) (255 - analyzer.spectrum[i] * 255 + 10), i * 2 + Config.WAVEFORM_SIZE + 22, 255 + 10);
 	}

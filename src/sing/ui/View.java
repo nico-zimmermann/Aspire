@@ -129,6 +129,18 @@ public class View
 		    }
 		})
 		.update();
+
+	cp5.addToggle(getNextName())
+		.setCaptionLabel("HIDE VIEW")
+		.setValue(1)
+		.setSize(40, 20)
+		.setPosition(10, 130)
+		.addListener(new ControlListener() {
+		    public void controlEvent(ControlEvent theEvent)
+		    {
+			main.hideView = theEvent.getValue() == 1 ? true : false;
+		    }
+		}).update();
     }
 
     private void createShapesTab()
@@ -331,23 +343,150 @@ public class View
 
     private void createSoundTab()
     {
-	cp5.addSlider("damp")
+	cp5.addSlider("FFT SCALE")
+		.moveTo(SOUND)
+		.setMin(0)
+		.setMax(100)
+		.setValue(20)
+		.setHeight(20)
+		.setPosition(10, 30)
+		.setSize(200, 20)
+		.addListener(new ControlListener() {
+		    public void controlEvent(ControlEvent theEvent)
+		    {
+			main.analyzer.fftScale = theEvent.getValue();
+		    }
+		})
+		.update();
+
+	cp5.addToggle(getNextName())
+		.setCaptionLabel("AUTO CUT")
+		.moveTo(SOUND)
+		.setValue(0)
+		.setSize(30, 20)
+		.setPosition(280, 30)
+		.addListener(new ControlListener() {
+		    public void controlEvent(ControlEvent theEvent)
+		    {
+			main.analyzer.autoCutoff = theEvent.getValue() == 1 ? true : false;
+		    }
+		})
+		.update();
+
+	cp5.addSlider(getNextName())
+		.setCaptionLabel("CUT")
+		.moveTo(SOUND)
+		.setMin(0)
+		.setMax(1)
+		.setValue(0.1f)
+		.setHeight(20)
+		.setPosition(340, 30)
+		.setSize(200, 20)
+		.addListener(new ControlListener() {
+		    public void controlEvent(ControlEvent theEvent)
+		    {
+			main.analyzer.cutoff = theEvent.getValue();
+		    }
+		})
+		.update();
+
+	cp5.addToggle(getNextName())
+		.setCaptionLabel("CUT SMOOTH")
+		.moveTo(SOUND)
+		.setValue(0)
+		.setSize(30, 20)
+		.setPosition(280, 70)
+		.addListener(new ControlListener() {
+		    public void controlEvent(ControlEvent theEvent)
+		    {
+			main.analyzer.autoCutoffSmooth = theEvent.getValue() == 1 ? true : false;
+		    }
+		})
+		.update();
+
+	cp5.addSlider(getNextName())
+		.setCaptionLabel("SMOOTH")
+		.moveTo(SOUND)
+		.setMin(1)
+		.setMax(50)
+		.setValue(10)
+		.setHeight(20)
+		.setPosition(340, 70)
+		.setSize(200, 20)
+		.addListener(new ControlListener() {
+		    public void controlEvent(ControlEvent theEvent)
+		    {
+			main.analyzer.autoCutoffSmoothValue = theEvent.getValue();
+		    }
+		})
+		.update();
+	cp5.addToggle(getNextName())
+		.setCaptionLabel("CUT POW")
+		.moveTo(SOUND)
+		.setValue(0)
+		.setSize(30, 20)
+		.setPosition(280, 110)
+		.addListener(new ControlListener() {
+		    public void controlEvent(ControlEvent theEvent)
+		    {
+			main.analyzer.autoCutoffModePow = theEvent.getValue() == 1 ? true : false;
+		    }
+		})
+		.update();
+
+	cp5.addSlider(getNextName())
+		.setCaptionLabel("POW")
+		.moveTo(SOUND)
+		.setMin(0.1f)
+		.setMax(3)
+		.setValue(1.5f)
+		.setHeight(20)
+		.setPosition(340, 110)
+		.setSize(200, 20)
+		.addListener(new ControlListener() {
+		    public void controlEvent(ControlEvent theEvent)
+		    {
+			main.analyzer.autoCutoffModePowExponent = theEvent.getValue();
+		    }
+		})
+		.update();
+
+	cp5.addSlider(getNextName())
+		.setCaptionLabel("INPUT OFFSET")
+		.moveTo(SOUND)
+		.setMin(-20)
+		.setMax(20)
+		.setValue(10)
+		.setHeight(20)
+		.setPosition(340, 150)
+		.setSize(200, 20)
+		.addListener(new ControlListener() {
+		    public void controlEvent(ControlEvent theEvent)
+		    {
+			main.analyzer.inputOffset = theEvent.getValue();
+		    }
+		})
+		.update();
+
+	cp5.addSlider(getNextName())
+		.setCaptionLabel("FFT DAMP")
 		.moveTo(SOUND)
 		.setMin(0)
 		.setMax(1)
 		.setValue(1.0f)
 		.setHeight(20)
 		.setPosition(10, 60)
-		.setSize(100, 20)
+		.setSize(200, 20)
 		.addListener(new ControlListener() {
 		    public void controlEvent(ControlEvent theEvent)
 		    {
-			//main.setDamping(theEvent.getValue());
+			// main.setDamping(theEvent.getValue());
 		    }
 		})
 		.update();
 
-	cp5.addToggle("EQ")
+	cp5.addToggle(getNextName())
+		.setCaptionLabel("FFT EQ")
 		.moveTo(SOUND)
 		.setValue(0)
 		.setSize(30, 20)
@@ -355,12 +494,13 @@ public class View
 		.addListener(new ControlListener() {
 		    public void controlEvent(ControlEvent theEvent)
 		    {
-			//main.setEQ(theEvent.getValue() == 1 ? true : false);
+			// main.setEQ(theEvent.getValue() == 1 ? true : false);
 		    }
 		})
 		.update();
 
-	cp5.addToggle("SMOOTH")
+	cp5.addToggle(getNextName())
+		.setCaptionLabel("FFT SMOOTH")
 		.moveTo(SOUND)
 		.setValue(0)
 		.setSize(30, 20)
@@ -368,7 +508,8 @@ public class View
 		.addListener(new ControlListener() {
 		    public void controlEvent(ControlEvent theEvent)
 		    {
-			//main.setSmoothing(theEvent.getValue() == 1 ? true : false);
+			// main.setSmoothing(theEvent.getValue() == 1 ? true :
+			// false);
 		    }
 		})
 		.update();
@@ -392,7 +533,7 @@ public class View
 		.setValue(-0.05f)
 		.setHeight(20)
 		.setPosition(10, 170)
-		.setSize(100, 20)
+		.setSize(200, 20)
 		.addListener(new ControlListener() {
 		    public void controlEvent(ControlEvent theEvent)
 		    {
@@ -408,7 +549,7 @@ public class View
 		.setValue(1.00f)
 		.setHeight(20)
 		.setPosition(10, 210)
-		.setSize(100, 20)
+		.setSize(200, 20)
 		.addListener(new ControlListener() {
 		    public void controlEvent(ControlEvent theEvent)
 		    {

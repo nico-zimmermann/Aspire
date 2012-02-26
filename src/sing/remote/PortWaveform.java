@@ -1,11 +1,13 @@
-package sing;
+package sing.remote;
 
 import java.util.ArrayList;
 
 import processing.serial.Serial;
+import sing.Config;
+import sing.Main;
 import sing.model.RGB;
 
-public class PortSpectrum extends Thread
+public class PortWaveform extends Thread
 {
     private static final int ON = 1;
     private static final int LOW = 2;
@@ -21,17 +23,18 @@ public class PortSpectrum extends Thread
     int spectrumIndex = 0;
     String portName;
 
-    public PortSpectrum(Main main, String portName)
+    public PortWaveform(Main main, String portName)
     {
 	this.main = main;
 	this.portName = portName;
     }
 
-    void createPort()
+    public void createPort()
     {
 	try
 	{
 	    port = new Serial(main, portName, 115200);
+	    //new FakeSerialWaveform(port);
 	    start();
 	} catch (Exception e)
 	{
@@ -40,7 +43,7 @@ public class PortSpectrum extends Thread
 	}
     }
 
-    void exit()
+    public void exit()
     {
 	port.stop();
     }
@@ -75,7 +78,7 @@ public class PortSpectrum extends Thread
 	    {
 		for(int i = 0; i < Config.WAVEFORM_SIZE; i++)
 		{
-		    waveform[i] = readByte() + 9;
+		    waveform[i] = readByte();
 		}
 		waiting = false;
 	    }

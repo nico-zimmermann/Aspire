@@ -16,7 +16,7 @@ public class Flash2 extends Program<Flash2>
 	particle.positionS.azimuth =  channelIndex * Math.PI / (Config.BANDS_NUM / 2);
 	particle.positionS.inclination = Math.PI / 2 + sin((channelIndex - Config.BANDS_NUM / 2) * 0.03) * 1;
 	double frequency = model.analyzer.bands.get(channelIndex).position * 4 + 0.1;
-	double energy = sin1(model.frame * frequency) * 0.3 + 0.7;
+	double energy = sin1(model.frame * frequency) * 0.7 + 0.3;
 
 	double r = 1;
 	double g = 1;

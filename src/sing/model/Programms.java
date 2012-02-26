@@ -57,7 +57,7 @@ public class Programms
 	addProgram( (twoOppositeParticles = new TwoOppositeParticles()) );
 	addProgram( (singleSmoothParticle = new SingleSmoothParticle()) );
 	addProgram( (vlines = new VLines()).disable() );
-	addProgram( (flash = new Flash()).disable() );
+	addProgram( (flash = new Flash()));
 	addProgram( (flash2 = new Flash2()) );
 	addProgram( (bands = new BandParticles()).disable() );
 
@@ -75,6 +75,11 @@ public class Programms
 	    {
 		Program randomProgram = programs2.get((i % programs2.size()));
 		newPrograms.add(randomProgram);
+		
+		if (i == 3 || i == 4 || i == 12)
+		{
+		    newPrograms.add(singleSmoothParticle);
+		}
 		i++;
 	    }
 	}
@@ -97,7 +102,7 @@ public class Programms
 	clearRGB();
 
 	frame++;
-	for (int i = 0; i < programs.size(); i++)
+	for (int i = 2; i < Config.BANDS_NUM; i++)
 	{
 	    Program program = programs.get(i);
 	    program.channelIndex = i;

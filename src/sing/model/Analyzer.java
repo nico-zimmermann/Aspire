@@ -10,6 +10,7 @@ public class Analyzer
 {
     public int[] waveform = new int[Config.WAVEFORM_SIZE];
     public double[] spectrum = new double[Config.SPECTRUM_SIZE];
+    public FFT fft;
 
     public double level;
     public double levelVelocity;
@@ -19,12 +20,20 @@ public class Analyzer
 
     public double offset = 0;
     public double mul = 1;
+    public double cutoff;
+    public boolean autoCutoff;
+    public double autoCutoffValue;
+    public double autoCutoffSmoothValue;
+    public double fftScale;
 
     public ArrayList<Band> bands = new ArrayList<Band>();
 
     Main main;
-    private FFT fft;
-    private float newLevel;
+    private double newLevel;
+    public boolean autoCutoffSmooth;
+    public boolean autoCutoffModePow;
+    public double autoCutoffModePowExponent;
+    public float inputOffset;
 
     public Analyzer(Main main)
     {
@@ -54,7 +63,7 @@ public class Analyzer
 	for (int i = 0; i < waveform.length; i++)
 	{
 	    int value = waveform[i];
-	    srcArray[i] = ((float) value - 128.0f) / (255.0f);
+	    srcArray[i] = ((float) value - 128.0f + inputOffset) / (255.0f);
 	}
 
 	fft.noLimits();
@@ -63,17 +72,48 @@ public class Analyzer
 	fft.equalizer(false);
 	fft.smooth = false;
 	fft.getSpectrum(srcArray, 0);
-	double cut = 0.2;
+
+	if (autoCutoff)
+	{
+	    double newCutoff = 0;
+
+	    if (autoCutoffModePow)
+	    {
+		double summ = 0;
+		for (int index = 0; index < fft.spectrum.length; index++)
+		{
+		    summ += Math.pow(fft.spectrum[index] * fftScale, autoCutoffModePowExponent);
+		}
+		newCutoff = Math.sqrt(summ / fft.spectrum.length);
+	    }
+	    else
+	    {
+		double summ = 0;
+		for (int index = 0; index < fft.spectrum.length; index++)
+		{
+		    summ += fft.spectrum[index] * fftScale;
+		}
+		newCutoff = summ / fft.spectrum.length;
+	    }
+
+	    if (autoCutoffSmooth)
+	    {
+		newCutoff = cutoff + (newCutoff - cutoff) / autoCutoffSmoothValue;
+	    }
+
+	    cutoff = newCutoff;
+	}
+
 	for (int index = 0; index < fft.spectrum.length; index++)
 	{
-	    double value = fft.spectrum[index] * 20;
-	    if (value < cut)
-		value = cut;
+	    double value = fft.spectrum[index] * fftScale;
+
+	    if (value < cutoff)
+		value = cutoff;
 	    if (value > 1)
 		value = 1;
 
-	    value = main.map(value, cut, 1, 0, 1);
-	    //System.out.println(index + " " + value);
+	    value = main.map(value, cutoff, 1, 0, 1);
 	    spectrum[index] = value;
 	}
 	newLevel = main.constrain(fft.getLevel(srcArray, 0, srcArray.length) * 2.0f - 0.05f, 0, 1);
