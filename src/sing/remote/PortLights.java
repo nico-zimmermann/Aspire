@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import processing.serial.Serial;
 import sing.Config;
 import sing.Main;
-import sing.model.RGB;
+import sing.model.Color;
 
 public class PortLights extends Thread
 {
@@ -33,7 +33,8 @@ public class PortLights extends Thread
 	try
 	{
 	    port = new Serial(main, portName, 115200);
-	    //new FakeSerialLights(port);
+	    if (Config.USE_LIGHTS_FAKE)
+		new FakeSerialLights(port);
 	    info("Create port... available:" + port.available());
 	    start();
 	} catch (Exception e)
@@ -186,11 +187,11 @@ public class PortLights extends Thread
 	System.err.println(message);
     }
 
-    public void setRGBs(RGB[] rgbs)
+    public void setRGBs(Color[] rgbs)
     {
 	for (int index = 0; index < Config.LEDS; index++)
 	{
-	    RGB rgb = rgbs[index];
+	    Color rgb = rgbs[index];
 	    setRGB2(index, rgb.r, rgb.g, rgb.b);
 	}
     }

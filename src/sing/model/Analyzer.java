@@ -2,13 +2,15 @@ package sing.model;
 
 import java.util.ArrayList;
 
+import krister.Ess.AudioInput;
+import krister.Ess.Ess;
 import krister.Ess.FFT;
 import sing.Config;
 import sing.Main;
 
 public class Analyzer
 {
-    public int[] waveform = new int[Config.WAVEFORM_SIZE];
+    public float[] waveform = new float[Config.WAVEFORM_SIZE];
     public double[] spectrum = new double[Config.SPECTRUM_SIZE];
     public FFT fft;
 
@@ -34,10 +36,17 @@ public class Analyzer
     public boolean autoCutoffModePow;
     public double autoCutoffModePowExponent;
     public float inputOffset;
+    private AudioInput myInput;
 
     public Analyzer(Main main)
     {
 	this.main = main;
+
+	Ess.start(main);
+
+	myInput = new AudioInput(Config.WAVEFORM_SIZE);
+	if (!Config.USE_SERIAL_AUDIO)
+	    myInput.start();
 
 	fft = new FFT(Config.WAVEFORM_SIZE);
 	fft.averages(32);
@@ -47,31 +56,56 @@ public class Analyzer
 	levelSpringIncrement = 0;
 	levelVelocity = 0;
 
+	createBands();
+    }
+
+    private void createBands()
+    {
+	double e = 0.05776;
+	mul = 0.0083;
+	offset = 0;
 	for (double i = 0; i < Config.BANDS_NUM; i++)
 	{
 	    Band band = new Band();
 	    band.analyzer = this;
 	    band.index = i;
+	    double v1 = (Math.exp(e * (band.index)) - Math.exp(0)) * mul;
+	    double v2 = (Math.exp(e * (band.index + 1)) - Math.exp(0)) * mul;
+	    band.position = v1 + offset;
+	    band.size = (v2 - v1) * 1;
 	    bands.add(band);
+	    System.out.println(v1 * Config.SPECTRUM_SIZE);
 	}
     }
 
-    public void setInput(int[] newWaveform)
+    public void audioInput()
     {
-	waveform = newWaveform;
-	float[] srcArray = new float[Config.WAVEFORM_SIZE];
-	for (int i = 0; i < waveform.length; i++)
+	for (int i = 0; i < Config.WAVEFORM_SIZE; i++)
+	    waveform[i] = myInput.buffer[i];
+
+	doAnalysis();
+    }
+
+    public void setSerialInput(int[] newWaveform)
+    {
+	for (int i = 0; i < Config.WAVEFORM_SIZE; i++)
 	{
-	    int value = waveform[i];
-	    srcArray[i] = ((float) value - 128.0f + inputOffset) / (255.0f);
+	    int value = newWaveform[i];
+	    waveform[i] = (value + inputOffset) / 256 - 0.5f;
+	    waveform[i] = waveform[i] * 2;
 	}
 
+	doAnalysis();
+    }
+
+    private void doAnalysis()
+    {
 	fft.noLimits();
 	fft.envelope(0.0f);
 	fft.damp(1.0f);
-	fft.equalizer(false);
+	fft.equalizer(true);
 	fft.smooth = false;
-	fft.getSpectrum(srcArray, 0);
+	fft.getSpectrum(waveform, 0);
 
 	if (autoCutoff)
 	{
@@ -116,7 +150,8 @@ public class Analyzer
 	    value = main.map(value, cutoff, 1, 0, 1);
 	    spectrum[index] = value;
 	}
-	newLevel = main.constrain(fft.getLevel(srcArray, 0, srcArray.length) * 2.0f - 0.05f, 0, 1);
+	newLevel = main.constrain(fft.getLevel(waveform, 0, Config.WAVEFORM_SIZE) * 1.0f - 0.03f, 0, 1);
+
     }
 
     public void iterate()
@@ -128,13 +163,7 @@ public class Analyzer
     public void iterateBands()
     {
 	for (Band band : bands)
-	{
-	    double v1 = Math.exp(0.05776 * (band.index - 49)) * mul;
-	    double v2 = Math.exp(0.05776 * (band.index - 49 + 1)) * mul;
-	    band.position = v1 + offset;
-	    band.size = (v2 - v1) * 1;
 	    band.compute(spectrum);
-	}
     }
 
     public void iterateLevel()

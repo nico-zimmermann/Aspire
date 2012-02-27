@@ -14,26 +14,6 @@ import controlP5.Toggle;
 
 public class View
 {
-    public class ToggleBlock
-    {
-	private boolean isFree = true;
-
-	public boolean isFree()
-	{
-	    return isFree;
-	}
-
-	public void enable()
-	{
-	    isFree = false;
-	}
-
-	public void disable()
-	{
-	    isFree = true;
-	}
-    }
-
     private static final String SHAPES = "SHAPES";
     private static final String SOUND = "SOUND";
     private static final String CALIBRATE = "CALIBRATE";
@@ -54,7 +34,6 @@ public class View
     {
 	cp5 = new ControlP5(main);
 
-	// ControlP5 cw = cp5;
 	ControlWindow cw = cp5.addControlWindow("win", 0, 665, 582, 300);
 	cw.frameRate(2);
 	cp5.begin(cw);
@@ -72,6 +51,16 @@ public class View
 	cp5.end();
     }
 
+    public void loadSettings()
+    {
+        cp5.loadProperties(Config.SERIAL_CONFIG);
+    }
+
+    public void saveSettings()
+    {
+	cp5.saveProperties(Config.SERIAL_CONFIG);
+    }
+    
     private void createDefaultTab()
     {
 	cp5.addButton("b3")
@@ -82,7 +71,7 @@ public class View
 		.addListener(new ControlListener() {
 		    public void controlEvent(ControlEvent theEvent)
 		    {
-			cp5.saveProperties("default.ser", "default");
+			saveSettings();
 		    }
 		});
 
@@ -94,7 +83,7 @@ public class View
 		.addListener(new ControlListener() {
 		    public void controlEvent(ControlEvent theEvent)
 		    {
-			cp5.loadProperties("default.ser");
+			loadSettings();
 		    }
 		});
 
@@ -557,5 +546,25 @@ public class View
 		    }
 		})
 		.update();
+    }
+
+    public class ToggleBlock
+    {
+	private boolean isFree = true;
+
+	public boolean isFree()
+	{
+	    return isFree;
+	}
+
+	public void enable()
+	{
+	    isFree = false;
+	}
+
+	public void disable()
+	{
+	    isFree = true;
+	}
     }
 }

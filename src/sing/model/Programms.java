@@ -20,7 +20,7 @@ import sing.util.Angle;
 public class Programms
 {
     public LED[] leds = new LED[Config.LEDS];
-    public RGB[] rgb = new RGB[Config.LEDS];
+    public Color[] rgb = new Color[Config.LEDS];
     public List<Program> programs = new ArrayList<Program>();
     public Collection<Particle> particles1 = Collections.synchronizedCollection(new ArrayList<Particle>());
     public Collection<Particle> particles2 = Collections.synchronizedCollection(new ArrayList<Particle>());
@@ -47,21 +47,21 @@ public class Programms
 	for (int i = 0; i < Config.LEDS; i++)
 	{
 	    leds[i] = new LED();
-	    rgb[i] = new RGB();
+	    rgb[i] = new Color();
 	}
     }
 
     public void initPrograms()
     {
-	addProgram( (calibrate = new Calibrate()).disable() );
-	addProgram( (twoOppositeParticles = new TwoOppositeParticles()) );
-	addProgram( (singleSmoothParticle = new SingleSmoothParticle()) );
-	addProgram( (vlines = new VLines()).disable() );
-	addProgram( (flash = new Flash()));
-	addProgram( (flash2 = new Flash2()) );
-	addProgram( (bands = new BandParticles()).disable() );
+	addProgram((calibrate = new Calibrate()).disable());
+	addProgram((twoOppositeParticles = new TwoOppositeParticles()));
+	addProgram((singleSmoothParticle = new SingleSmoothParticle()));
+	addProgram((vlines = new VLines()).disable());
+	addProgram((flash = new Flash()));
+	addProgram((flash2 = new Flash2()));
+	addProgram((bands = new BandParticles()));
 
-	expandTo(programs, 50);
+	expandTo(programs, Config.BANDS_NUM);
     }
 
     private void expandTo(List<Program> programs2, int newSize)
@@ -69,21 +69,24 @@ public class Programms
 	ArrayList<Program> newPrograms = new ArrayList<Program>();
 
 	int i = 0;
-	while(i < newSize)
+	while (i < newSize)
 	{
 	    for (int k = 0; k < 5; k++)
 	    {
-		Program randomProgram = programs2.get((i % programs2.size()));
-		newPrograms.add(randomProgram);
-		
-		if (i == 3 || i == 4 || i == 12)
+
+		if (i == 3 || i == 4 || i == 12 || i == 13 || i == 18)
 		{
 		    newPrograms.add(singleSmoothParticle);
+		}
+		else
+		{
+		    Program randomProgram = programs2.get((i % programs2.size()));
+		    newPrograms.add(randomProgram);
 		}
 		i++;
 	    }
 	}
-	
+
 	programs.clear();
 	programs.addAll(newPrograms);
     }
@@ -97,8 +100,6 @@ public class Programms
 
     public void iterate()
     {
-	// globalAlpha = 0.2 + analyzer.levelSpring * 0.7;
-
 	clearRGB();
 
 	frame++;
@@ -122,8 +123,7 @@ public class Programms
 	program.main = main;
 	program.spectrum = analyzer;
 	program.init();
-	
-	
+
 	if (!program.disabled)
 	    programs.add(program);
     }

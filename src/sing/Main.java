@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
+import krister.Ess.AudioInput;
 import processing.core.PApplet;
 import processing.serial.Serial;
 import sing.model.Analyzer;
@@ -37,7 +38,7 @@ public class Main extends PApplet
     {
 	frameRate(20);
 	smooth();
-	size(582, 600);
+	size(512 + 70, 600);
 	background(0);
 	textFont(createFont("Monaco", 10));
 
@@ -68,10 +69,13 @@ public class Main extends PApplet
 
 	view = new View(this, model);
 	view.init();
+
+	view.loadSettings();
     }
 
     public void exit()
     {
+	view.saveSettings();
 	portLights.exit();
 	portWaveform.exit();
     }
@@ -88,7 +92,7 @@ public class Main extends PApplet
 
     public void draw()
     {
-	frameRate(hideView ? 10 : 30);
+	frameRate(hideView ? 10 : 20);
 	measureStats();
 	background(0);
 	if (!hideView)
@@ -102,7 +106,8 @@ public class Main extends PApplet
 
     public void handleWaveform()
     {
-	analyzer.setInput(portWaveform.waveform);
+	if (Config.USE_SERIAL_AUDIO)
+	    analyzer.setSerialInput(portWaveform.waveform);
     }
 
     private void measureStats()
@@ -192,7 +197,7 @@ public class Main extends PApplet
 		return;
 	    drawParticle(particle, particle.position.x * 100 + cx1, particle.position.y * 100 + cy1, particle.radius * 100 * map(particle.position.z, -1, 1, 0.9, 1.1));
 	}
-	
+
 	Collections.sort(particles, new Comparator<Particle>()
 	{
 	    @Override
@@ -243,7 +248,7 @@ public class Main extends PApplet
     {
 	fill((float) r * 255, (float) g * 255, (float) b * 255);
     }
-    
+
     private void ellipse(double x, double y, double width, double height)
     {
 	ellipse((float) x, (float) y, (float) width, (float) height);
@@ -261,43 +266,43 @@ public class Main extends PApplet
 
     public void drawAudio()
     {
-	int[] waveform = analyzer.waveform;
-
 	// clear
 	fill(Config.COLOR_DARK);
 	stroke(Config.COLOR_MEDIUM);
-	rect(10, 10, Config.WAVEFORM_SIZE, 255);
-	rect(Config.WAVEFORM_SIZE + 20, 10, Config.WAVEFORM_SIZE, 255);
+	rect(10, 10, 255, 255);
+	rect(255 + 20, 10, 255, 255);
 
 	// waveform
 	stroke(Config.COLOR_BRIGHT);
-	for (int i = 0; i < Config.WAVEFORM_SIZE - 1; i++)
-	    line(i + 10, waveform[i] + 10, i + 1 + 10, waveform[i + 1] + 10);
+	for (int i = 0; i < 255; i++)
+	{
+	    line(i + 10, analyzer.waveform[i] * 128 + 128 + 10, i + 1 + 10, analyzer.waveform[i + 1] * 128 + 128 + 10);
+	}
 
 	// level
 	stroke(Config.COLOR_MEDIUM);
 	fill(Config.COLOR_DARK);
-	rect(Config.WAVEFORM_SIZE * 2 + 30, 0 + 10, 30, 255);
+	rect(255 * 2 + 30, 0 + 10, 30, 255);
 	fill(Config.COLOR_BRIGHT);
-	rect(Config.WAVEFORM_SIZE * 2 + 30, 255 + 10, 10, -255.0f * (float) analyzer.level);
-	rect(Config.WAVEFORM_SIZE * 2 + 30 + 10, 255 + 10, 10, -255.0f * (float) analyzer.levelSmooth);
-	rect(Config.WAVEFORM_SIZE * 2 + 30 + 20, 255 + 10, 10, -255.0f * (float) analyzer.levelSpring);
+	rect(255 * 2 + 30, 255 + 10, 10, -255.0f * (float) analyzer.level);
+	rect(255 * 2 + 30 + 10, 255 + 10, 10, -255.0f * (float) analyzer.levelSmooth);
+	rect(255 * 2 + 30 + 20, 255 + 10, 10, -255.0f * (float) analyzer.levelSpring);
 	noFill();
 
-		
 	stroke(Config.COLOR_BRIGHT);
 	double cutY = 255 - analyzer.cutoff * 255 + 10;
-	line(Config.WAVEFORM_SIZE + 22, (float)cutY, Config.WAVEFORM_SIZE * 2 + 22, (float)cutY);
+	line(256 + 20, (float) cutY, 255 * 2 + 20, (float) cutY);
 	// fft
-	for (int i = 0; i < Config.SPECTRUM_SIZE - 1; i++)
+	for (int i = 0; i < 128; i++)
 	{
 	    stroke(Config.COLOR_MEDIUM);
-	    line(i * 2 + Config.WAVEFORM_SIZE + 22, (float) (255 - analyzer.fft.spectrum[i] * analyzer.fftScale * 255 + 10), i * 2 + Config.WAVEFORM_SIZE + 22, 255 + 10);
+	    line(i * 2 + 256 + 20, (float) (255 - analyzer.fft.spectrum[i] * analyzer.fftScale * 255 + 10), i * 2 + 256 + 20, 255 + 10);
 	    stroke(Config.COLOR_BRIGHT);
-	    line(i * 2 + Config.WAVEFORM_SIZE + 22, (float) (255 - analyzer.spectrum[i] * 255 + 10), i * 2 + Config.WAVEFORM_SIZE + 22, 255 + 10);
+	    line(i * 2 + 256 + 20, (float) (255 - analyzer.spectrum[i] * 255 + 10), i * 2 + 256 + 20, 255 + 10);
 	}
 
     }
+
     public void drawBands()
     {
 	// bands
@@ -306,22 +311,22 @@ public class Main extends PApplet
 	{
 	    float v = (float) (255.0f * (band.energy * 2 + 0.05));
 	    stroke(Config.COLOR_BRIGHT, v);
-	    
-	    float size = 11.25f;
+
+	    float size = 6.4f;
 	    float xOffset = size / 2 + index * size + 10;
-	    
-	    float x = (float) (band.position * Config.WAVEFORM_SIZE) * 1 + 255 + 20; 
+
+	    float x = (float) (band.position * Config.WAVEFORM_SIZE) * 1 + 255 + 20;
 	    float bsize = (float) (band.size * Config.WAVEFORM_SIZE);
-	    
-	    if(model.showBands)
+
+	    if (model.showBands)
 	    {
-	    noFill();
-	    stroke(0xffff0000);
-	    line(x, 10, x, Config.WAVEFORM_SIZE + 10);
-	    stroke(0xff00ff00);
-	    line(x + bsize, 10, x + bsize, Config.WAVEFORM_SIZE + 10);
+		noFill();
+		stroke(0xffff0000);
+		line(x, 10, x, 255 + 10);
+		stroke(0xff00ff00);
+		line(x + bsize, 10, x + bsize, 255 + 10);
 	    }
-	    
+
 	    float value = (float) band.value;
 	    stroke(Config.COLOR_MEDIUM, 255 * (value * 2 + 0.5f));
 	    fill(0);
@@ -329,21 +334,26 @@ public class Main extends PApplet
 	    fill(Config.COLOR_BRIGHT, 255 * value);
 	    ellipse(xOffset, 297, size, size);
 	    ellipse(xOffset, 297, size, size);
-	    
+
 	    float value2 = (float) band.energySmooth * 1.0f;
 	    stroke(Config.COLOR_MEDIUM, 255 * (value2 * 2 + 0.5f));
 	    fill(Config.COLOR_BRIGHT, 255 * value2);
 	    ellipse(xOffset, 320, size, size);
-	    
+
 	    int scale = 1;
 	    if (index % scale == 0)
 	    {
 		fill(Config.COLOR_BRIGHT);
 		textSize(8);
 		textAlign(CENTER);
-		text("" + (int) (band.index), xOffset, 280);
+		text("" + (int) (band.index), xOffset, 280 + (index % 2) * 10);
 	    }
 	    index++;
 	}
+    }
+
+    public void audioInputData(AudioInput theInput)
+    {
+	analyzer.audioInput();
     }
 }

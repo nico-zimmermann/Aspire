@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import processing.serial.Serial;
 import sing.Config;
 import sing.Main;
-import sing.model.RGB;
+import sing.model.Color;
 
 public class PortWaveform extends Thread
 {
@@ -16,10 +16,10 @@ public class PortWaveform extends Thread
 
     private Serial port;
     private Main main;
-    
+
     public int lastLoopDuration;
     public int[] waveform = new int[Config.WAVEFORM_SIZE];
-    
+
     int spectrumIndex = 0;
     String portName;
 
@@ -34,7 +34,8 @@ public class PortWaveform extends Thread
 	try
 	{
 	    port = new Serial(main, portName, 115200);
-	    //new FakeSerialWaveform(port);
+	    if (Config.USE_WAVEFROM_FAKE)
+		new FakeSerialWaveform(port);
 	    start();
 	} catch (Exception e)
 	{
@@ -76,7 +77,7 @@ public class PortWaveform extends Thread
 	    info("readWaveform: " + port.available(), HIGH);
 	    if (port.available() >= Config.WAVEFORM_SIZE)
 	    {
-		for(int i = 0; i < Config.WAVEFORM_SIZE; i++)
+		for (int i = 0; i < Config.WAVEFORM_SIZE; i++)
 		{
 		    waveform[i] = readByte();
 		}
@@ -85,7 +86,7 @@ public class PortWaveform extends Thread
 	    delay(1);
 	}
     }
-    
+
     private int readByte()
     {
 	int v = port.read();

@@ -5,7 +5,7 @@ import javax.vecmath.Vector3d;
 
 public abstract class Particle
 {
-    public RGB color = new RGB();
+    public Color color = new Color();
     public double radius = 0.8;
     public Vector3d position = new Vector3d();
 

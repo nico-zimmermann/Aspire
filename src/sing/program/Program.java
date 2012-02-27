@@ -44,7 +44,7 @@ public abstract class Program<T>
 	    LED led = getLED(index);
 
 	    double energy = 0;
-	    
+
 	    double dx = led.positionV.x - particle.position.x;
 	    double dy = led.positionV.y - particle.position.y;
 	    double dz = led.positionV.z - particle.position.z;
@@ -64,9 +64,10 @@ public abstract class Program<T>
 	    if (energy < 0)
 		energy = 0;
 
+	    particle.color.updateRGB();
 	    setRGB(index, particle.color.r * energy, particle.color.g * energy, particle.color.b * energy);
 	}
-	
+
 	Particle clone = particle.creatViewClone();
 	clone.color.alpha = spectrum.bands.get(channelIndex).energySmooth;
 	model.particles1.add(clone);
@@ -80,11 +81,12 @@ public abstract class Program<T>
     public void setRGB(int index, double r, double g, double b)
     {
 	double energy = spectrum.bands.get(channelIndex).energySmooth;
-	
+	if (spectrum.levelSpring < -0.5 && (this instanceof Flash))
+	{
+	    energy = -spectrum.levelSpring;
+	}
+
 	model.setRGB(index,
-		//Math.pow(r * alpha * model.globalAlpha, model.globalPow),
-		//Math.pow(g * alpha * model.globalAlpha, model.globalPow),
-		//Math.pow(b * alpha * model.globalAlpha, model.globalPow)
 		r * energy, g * energy, b * energy
 		);
     }
