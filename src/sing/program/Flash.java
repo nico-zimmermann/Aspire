@@ -21,7 +21,7 @@ public class Flash extends Program<Flash>
     public void iterate()
     {
 	double color = sin1(millis() / 10) * 10 + spectrum.bands.get(10).value * 1;
-	if ((model.analyzer.levelSpring > 0.8 && model.analyzer.levelSmooth > 0.5)
+	if ((model.analyzer.levelSpring > 0.1 && model.analyzer.level > 0.1)
 		|| model.analyzer.levelSpring < -0.5)
 	{
 	    int index = (int) (sin1(millis() / 100) * 10);

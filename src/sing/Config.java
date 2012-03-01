@@ -11,8 +11,9 @@ public class Config
     public static final int COLOR_MEDIUM = 0xff00497c;
     public static final int COLOR_DARK = 0xff003652;
 
-    public static final boolean USE_WAVEFROM_FAKE = true;
-    public static final boolean USE_LIGHTS_FAKE = false;
-    public static final String SERIAL_CONFIG = "../default.ser";
     public static final boolean USE_SERIAL_AUDIO = false;
+    public static final boolean USE_WAVEFROM_FAKE = true;
+    
+    public static final boolean USE_LIGHTS_FAKE = true;
+    public static final String SERIAL_CONFIG = "../default.ser";
 }

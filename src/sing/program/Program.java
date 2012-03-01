@@ -61,6 +61,7 @@ public abstract class Program<T>
 		    break;
 	    }
 
+	    energy *= 10;
 	    if (energy < 0)
 		energy = 0;
 

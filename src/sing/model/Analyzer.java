@@ -37,6 +37,8 @@ public class Analyzer
     public double autoCutoffModePowExponent;
     public float inputOffset;
     private AudioInput myInput;
+    public boolean equalizer;
+    public boolean smoothing;
 
     public Analyzer(Main main)
     {
@@ -61,20 +63,12 @@ public class Analyzer
 
     private void createBands()
     {
-	double e = 0.05776;
-	mul = 0.0083;
-	offset = 0;
 	for (double i = 0; i < Config.BANDS_NUM; i++)
 	{
 	    Band band = new Band();
 	    band.analyzer = this;
 	    band.index = i;
-	    double v1 = (Math.exp(e * (band.index)) - Math.exp(0)) * mul;
-	    double v2 = (Math.exp(e * (band.index + 1)) - Math.exp(0)) * mul;
-	    band.position = v1 + offset;
-	    band.size = (v2 - v1) * 1;
 	    bands.add(band);
-	    System.out.println(v1 * Config.SPECTRUM_SIZE);
 	}
     }
 
@@ -103,8 +97,8 @@ public class Analyzer
 	fft.noLimits();
 	fft.envelope(0.0f);
 	fft.damp(1.0f);
-	fft.equalizer(true);
-	fft.smooth = false;
+	fft.equalizer(equalizer);
+	fft.smooth = smoothing;
 	fft.getSpectrum(waveform, 0);
 
 	if (autoCutoff)
@@ -162,8 +156,20 @@ public class Analyzer
 
     public void iterateBands()
     {
+	double spacing = 2.0;
 	for (Band band : bands)
+	{
+	    offset = 0;
+	    double tone = band.index * spacing + 42;
+	    double frequency0 = 440 * Math.pow(2, (tone - 69) / 12);
+	    double frequency1 = 440 * Math.pow(2, (tone + spacing - 69) / 12);
+	    double v0 = (frequency0 / 10) / spectrum.length;
+	    double v1 = (frequency1 / 10) / spectrum.length;
+	    band.position = v0;
+	    band.size = (v1 - v0);
+
 	    band.compute(spectrum);
+	}
     }
 
     public void iterateLevel()

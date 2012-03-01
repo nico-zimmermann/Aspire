@@ -36,8 +36,8 @@ public class Band
 	{
 	    if (i > 0 && i < spectrum.length)
 	    {
-		double v = spectrum[i] * 10;
-		value += v;
+		double v = spectrum[i] * 1;
+		value += v *v;
 	    }
 	}
 	if (value < 0)

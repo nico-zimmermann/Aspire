@@ -53,14 +53,14 @@ public class View
 
     public void loadSettings()
     {
-        cp5.loadProperties(Config.SERIAL_CONFIG);
+	cp5.loadProperties(Config.SERIAL_CONFIG);
     }
 
     public void saveSettings()
     {
 	cp5.saveProperties(Config.SERIAL_CONFIG);
     }
-    
+
     private void createDefaultTab()
     {
 	cp5.addButton("b3")
@@ -457,23 +457,6 @@ public class View
 		})
 		.update();
 
-	cp5.addSlider(getNextName())
-		.setCaptionLabel("FFT DAMP")
-		.moveTo(SOUND)
-		.setMin(0)
-		.setMax(1)
-		.setValue(1.0f)
-		.setHeight(20)
-		.setPosition(10, 60)
-		.setSize(200, 20)
-		.addListener(new ControlListener() {
-		    public void controlEvent(ControlEvent theEvent)
-		    {
-			// main.setDamping(theEvent.getValue());
-		    }
-		})
-		.update();
-
 	cp5.addToggle(getNextName())
 		.setCaptionLabel("FFT EQ")
 		.moveTo(SOUND)
@@ -483,7 +466,7 @@ public class View
 		.addListener(new ControlListener() {
 		    public void controlEvent(ControlEvent theEvent)
 		    {
-			// main.setEQ(theEvent.getValue() == 1 ? true : false);
+			main.analyzer.equalizer = theEvent.getValue() == 1 ? true : false;
 		    }
 		})
 		.update();
@@ -497,8 +480,7 @@ public class View
 		.addListener(new ControlListener() {
 		    public void controlEvent(ControlEvent theEvent)
 		    {
-			// main.setSmoothing(theEvent.getValue() == 1 ? true :
-			// false);
+			main.analyzer.smoothing = theEvent.getValue() == 1 ? true :false;
 		    }
 		})
 		.update();

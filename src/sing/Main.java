@@ -34,6 +34,8 @@ public class Main extends PApplet
 
     public boolean hideView;
 
+    private int soundStart;
+
     public void setup()
     {
 	frameRate(20);
@@ -65,7 +67,7 @@ public class Main extends PApplet
 	portLights.createPort();
 
 	portWaveform = new PortWaveform(this, "/dev/tty.usbmodemfd121");
-	portWaveform.createPort();
+//	portWaveform.createPort();
 
 	view = new View(this, model);
 	view.init();
@@ -296,10 +298,11 @@ public class Main extends PApplet
 	for (int i = 0; i < 128; i++)
 	{
 	    stroke(Config.COLOR_MEDIUM);
-	    line(i * 2 + 256 + 20, (float) (255 - analyzer.fft.spectrum[i] * analyzer.fftScale * 255 + 10), i * 2 + 256 + 20, 255 + 10);
+	    line(i * 2 + 256 + 20, (float) (255 - analyzer.fft.spectrum[i * 8] * analyzer.fftScale * 255 + 10), i * 2 + 256 + 20, 255 + 10);
 	    stroke(Config.COLOR_BRIGHT);
-	    line(i * 2 + 256 + 20, (float) (255 - analyzer.spectrum[i] * 255 + 10), i * 2 + 256 + 20, 255 + 10);
+	    line(i * 2 + 256 + 20, (float) (255 - analyzer.spectrum[i * 8] * 255 + 10), i * 2 + 256 + 20, 255 + 10);
 	}
+	//System.out.println((mouseX - 256 - 20) / 2); 
 
     }
 
@@ -354,6 +357,9 @@ public class Main extends PApplet
 
     public void audioInputData(AudioInput theInput)
     {
+	portWaveform.lastLoopDuration = millis() - soundStart;
+	soundStart = millis();
+	
 	analyzer.audioInput();
     }
 }
