@@ -61,12 +61,8 @@ public class PortWaveform extends Thread
 
     private void loop()
     {
-	int start = main.millis();
-
 	readWaveform();
 	main.handleWaveform();
-
-	lastLoopDuration = main.millis() - start;
     }
 
     private void readWaveform()

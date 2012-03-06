@@ -20,8 +20,6 @@ public class Analyzer
     public double levelSpring;
     public double levelSpringIncrement;
 
-    public double offset = 0;
-    public double mul = 1;
     public double cutoff;
     public boolean autoCutoff;
     public double autoCutoffValue;
@@ -46,7 +44,7 @@ public class Analyzer
 
 	Ess.start(main);
 
-	myInput = new AudioInput(Config.WAVEFORM_SIZE);
+	myInput = new AudioInput(Config.SAMPLE_SIZE);
 	if (!Config.USE_SERIAL_AUDIO)
 	    myInput.start();
 
@@ -72,15 +70,24 @@ public class Analyzer
 	}
     }
 
-    public void audioInput()
+    synchronized public void audioInput()
     {
-	for (int i = 0; i < Config.WAVEFORM_SIZE; i++)
-	    waveform[i] = myInput.buffer[i];
+	// shift left
+	for (int i = Config.SAMPLE_SIZE; i < Config.WAVEFORM_SIZE; i++)
+	{
+	    waveform[i - Config.SAMPLE_SIZE] = waveform[i];
+	}
 
-	doAnalysis();
+	// append right
+	for (int i = 0; i < Config.SAMPLE_SIZE; i++)
+	{
+	    waveform[i + Config.WAVEFORM_SIZE - Config.SAMPLE_SIZE] = myInput.buffer[i];
+	}
+
+	// doAnalysis();
     }
 
-    public void setSerialInput(int[] newWaveform)
+    synchronized public void setSerialInput(int[] newWaveform)
     {
 	for (int i = 0; i < Config.WAVEFORM_SIZE; i++)
 	{
@@ -92,7 +99,7 @@ public class Analyzer
 	doAnalysis();
     }
 
-    private void doAnalysis()
+    synchronized public void doAnalysis()
     {
 	fft.noLimits();
 	fft.envelope(0.0f);
@@ -144,7 +151,7 @@ public class Analyzer
 	    value = main.map(value, cutoff, 1, 0, 1);
 	    spectrum[index] = value;
 	}
-	newLevel = main.constrain(fft.getLevel(waveform, 0, Config.WAVEFORM_SIZE) * 1.0f - 0.03f, 0, 1);
+	newLevel = main.constrain(fft.getLevel(waveform, Config.WAVEFORM_SIZE - Config.SAMPLE_SIZE, Config.SAMPLE_SIZE) * 1.0f - 0.03f, 0, 1);
 
     }
 
@@ -156,19 +163,26 @@ public class Analyzer
 
     public void iterateBands()
     {
-	double spacing = 2.0;
+	double scale = (float) Config.SAMPLING_RATE / Config.WAVEFORM_SIZE;
+	int fromTone = 0;
+	int toTone = fromTone + 1;
 	for (Band band : bands)
 	{
-	    offset = 0;
-	    double tone = band.index * spacing + 42;
-	    double frequency0 = 440 * Math.pow(2, (tone - 69) / 12);
-	    double frequency1 = 440 * Math.pow(2, (tone + spacing - 69) / 12);
-	    double v0 = (frequency0 / 10) / spectrum.length;
-	    double v1 = (frequency1 / 10) / spectrum.length;
-	    band.position = v0;
-	    band.size = (v1 - v0);
+	    band.position = 0;
+	    band.size = 0;
 
+	    while (band.size * spectrum.length < 1)
+	    {
+		double frequency0 = 440 * Math.pow(2, (fromTone - 0.5 - 69) / 12.0);
+		double frequency1 = 440 * Math.pow(2, (toTone + 0.5 - 69) / 12.0);
+		double v0 = (frequency0 / scale) / spectrum.length;
+		double v1 = (frequency1 / scale) / spectrum.length;
+		band.position = v0;
+		band.size = (v1 - v0);
+		toTone++;
+	    }
 	    band.compute(spectrum);
+	    fromTone = toTone;
 	}
     }
 

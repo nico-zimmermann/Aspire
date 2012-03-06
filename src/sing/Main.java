@@ -43,6 +43,9 @@ public class Main extends PApplet
 	size(512 + 70, 600);
 	background(0);
 	textFont(createFont("Monaco", 10));
+	
+	System.out.println("WAVEFORM_SIZE: " + Config.WAVEFORM_SIZE);
+	System.out.println("SAMPLE_SIZE: " + Config.SAMPLE_SIZE);
 
 	analyzer = new Analyzer(this);
 
@@ -67,7 +70,7 @@ public class Main extends PApplet
 	portLights.createPort();
 
 	portWaveform = new PortWaveform(this, "/dev/tty.usbmodemfd121");
-//	portWaveform.createPort();
+	portWaveform.createPort();
 
 	view = new View(this, model);
 	view.init();
@@ -94,14 +97,15 @@ public class Main extends PApplet
 
     public void draw()
     {
-	frameRate(hideView ? 10 : 20);
+	analyzer.doAnalysis();
+	frameRate(hideView ? 10 : 30);
 	measureStats();
 	background(0);
 	if (!hideView)
 	{
 	    drawAudio();
-	    drawBands();
 	    drawStats();
+	    drawBands();
 	    drawModel();
 	}
     }
@@ -125,17 +129,15 @@ public class Main extends PApplet
 	    fill(Config.COLOR_BRIGHT);
 	    textAlign(LEFT);
 	    textSize(10);
-	    text("SOUND: " + portWaveform.lastLoopDuration + "ms " + (int) (1000 / portWaveform.lastLoopDuration) + "/s", 12, 21);
-	    text("LIGHT: " + portLights.lastLoopDuration + "ms " + (int) (1000 / portLights.lastLoopDuration) + "/s", 12, 31);
-	    text("DRAW : " + lastDrawDuration + "ms " + (int) (1000 / lastDrawDuration) + "/s", 12, 41);
+	    text("SOUND: " + portWaveform.lastLoopDuration + "ms", 12, 21);
+	    text("LIGHT: " + portLights.lastLoopDuration + "ms " + (int) (1000.0 / portLights.lastLoopDuration) + "/s", 12, 31);
+	    text("DRAW : " + lastDrawDuration + "ms " + (int) (1000.0 / lastDrawDuration) + "/s", 12, 41);
 
 	    stroke(Config.COLOR_MEDIUM);
 	    fill(Config.COLOR_DARK);
-	    rect(115, 2 + 10, 149, 8);
 	    rect(115, 2 + 20, 149, 8);
 	    rect(115, 2 + 30, 149, 8);
 	    fill(Config.COLOR_BRIGHT);
-	    rect(115, 2 + 10, 149 * map(1000 / portWaveform.lastLoopDuration, 0, 60, 0, 1), 8);
 	    rect(115, 2 + 20, 149 * map(1000 / portLights.lastLoopDuration, 0, 60, 0, 1), 8);
 	    rect(115, 2 + 30, 149 * map(1000 / lastDrawDuration, 0, 60, 0, 1), 8);
 	    noFill();
@@ -276,9 +278,10 @@ public class Main extends PApplet
 
 	// waveform
 	stroke(Config.COLOR_BRIGHT);
+	int scale =analyzer.waveform.length / 256;
 	for (int i = 0; i < 255; i++)
 	{
-	    line(i + 10, analyzer.waveform[i] * 128 + 128 + 10, i + 1 + 10, analyzer.waveform[i + 1] * 128 + 128 + 10);
+	    line(i + 10, analyzer.waveform[i * scale] * 128 + 128 + 10, i + 1 + 10, analyzer.waveform[(i + 1) * scale] * 128 + 128 + 10);
 	}
 
 	// level
@@ -295,12 +298,13 @@ public class Main extends PApplet
 	double cutY = 255 - analyzer.cutoff * 255 + 10;
 	line(256 + 20, (float) cutY, 255 * 2 + 20, (float) cutY);
 	// fft
-	for (int i = 0; i < 128; i++)
+	scale = analyzer.fft.spectrum.length / 256;
+	for (int i = 0; i < 256; i++)
 	{
 	    stroke(Config.COLOR_MEDIUM);
-	    line(i * 2 + 256 + 20, (float) (255 - analyzer.fft.spectrum[i * 8] * analyzer.fftScale * 255 + 10), i * 2 + 256 + 20, 255 + 10);
+	    line(i + 256 + 20, (float) (255 - analyzer.fft.spectrum[i * scale] * analyzer.fftScale * 255 + 10), i + 256 + 20, 255 + 10);
 	    stroke(Config.COLOR_BRIGHT);
-	    line(i * 2 + 256 + 20, (float) (255 - analyzer.spectrum[i * 8] * 255 + 10), i * 2 + 256 + 20, 255 + 10);
+	    line(i + 256 + 20, (float) (255 - analyzer.spectrum[i * scale] * 255 + 10), i + 256 + 20, 255 + 10);
 	}
 	//System.out.println((mouseX - 256 - 20) / 2); 
 
@@ -359,7 +363,6 @@ public class Main extends PApplet
     {
 	portWaveform.lastLoopDuration = millis() - soundStart;
 	soundStart = millis();
-	
 	analyzer.audioInput();
     }
 }

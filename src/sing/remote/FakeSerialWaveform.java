@@ -19,7 +19,7 @@ public class FakeSerialWaveform extends FakeSerial
     private void sendWaveform()
     {
 	long ms = System.currentTimeMillis();
-	double noiseValue = getAmplitude(ms * 0.01) * 00 + 0;
+	double noiseValue = getAmplitude(ms * 0.01) * 0 + 0;
 	// A3 (00) 220  -> 11
 	// A4 (49) 440  -> 21
 	// A4#(00) 466  -> 22
@@ -31,15 +31,15 @@ public class FakeSerialWaveform extends FakeSerial
 	for (int i = 0; i < Config.WAVEFORM_SIZE; i++)
 	{
 	    double value = 128
-		    //+ Math.sin(i * Math.PI / (Config.WAVEFORM_SIZE / 2.0) * Math.pow(2, (5 * 12 + 4) / 12.0)) * 3 // A5
-		    //+ Math.sin(i * Math.PI / (Config.WAVEFORM_SIZE / 2.0) * Math.pow(2, (6 * 12 + 4) / 12.0)) * 3 // A6
-		    + Math.sin(i * Math.PI / (Config.WAVEFORM_SIZE / 2.0) * Math.pow(2, (0 * 12) / 12.0)) * 2
-		    + Math.sin(i * Math.PI / (Config.WAVEFORM_SIZE / 2.0) * Math.pow(2, (1 * 12) / 12.0)) * 2
-		    + Math.sin(i * Math.PI / (Config.WAVEFORM_SIZE / 2.0) * Math.pow(2, (2 * 12) / 12.0)) * 2
-		    + Math.sin(i * Math.PI / (Config.WAVEFORM_SIZE / 2.0) * Math.pow(2, (3 * 12) / 12.0)) * 2
-		    + Math.sin(i * Math.PI / (Config.WAVEFORM_SIZE / 2.0) * Math.pow(2, (4 * 12) / 12.0)) * 2
-		    + Math.sin(i * Math.PI / (Config.WAVEFORM_SIZE / 2.0) * Math.pow(2, (5 * 12) / 12.0)) * 2
-		    + Math.sin(i * Math.PI / (Config.WAVEFORM_SIZE / 2.0) * Math.pow(2, (6 * 12 + 0) / 12.0)) * 2
+		    + Math.sin(i * Math.PI / (Config.WAVEFORM_SIZE / 2.0) * Math.pow(2, (5 * 12 + 4) / 12.0)) * 0 // A5
+		    + Math.sin(i * Math.PI / (Config.WAVEFORM_SIZE / 2.0) * Math.pow(2, (6 * 12 + 4) / 12.0)) * 0 // A6
+		    + Math.sin(i * Math.PI / (Config.WAVEFORM_SIZE / 2.0) * Math.pow(2, (0 * 12) / 12.0)) * 0
+		    + Math.sin(i * Math.PI / (Config.WAVEFORM_SIZE / 2.0) * Math.pow(2, (1 * 12) / 12.0)) * 0
+		    + Math.sin(i * Math.PI / (Config.WAVEFORM_SIZE / 2.0) * Math.pow(2, (2 * 12) / 12.0)) * 5
+		    + Math.sin(i * Math.PI / (Config.WAVEFORM_SIZE / 2.0) * Math.pow(2, (3 * 12) / 12.0)) * 0
+		    + Math.sin(i * Math.PI / (Config.WAVEFORM_SIZE / 2.0) * Math.pow(2, (4 * 12) / 12.0)) * 0
+		    + Math.sin(i * Math.PI / (Config.WAVEFORM_SIZE / 2.0) * Math.pow(2, (5 * 12) / 12.0)) * 0
+		    + Math.sin(i * Math.PI / (Config.WAVEFORM_SIZE / 2.0) * Math.pow(2, (6 * 12 + 0) / 12.0)) * 0
 		    + Math.sin(i * Math.PI / (Config.WAVEFORM_SIZE / 2.0) * Math.pow(2, (7 * 12 + 0) / 12.0)) * 0
 		    // + Math.sin(i * Math.PI / (Config.WAVEFORM_SIZE / 2.0) *
 		    // Math.pow(2, (7 * 12 - 1) / 12.0)) * 0

@@ -14,20 +14,11 @@ public class Band
     public double valueSmoothSlow;
     public double energy;
     public double energySmooth;
-    public float runningPosition = 0;
 
     public void compute(double[] spectrum)
     {
-	runningPosition += 0.02;
-	if(runningPosition > Config.BANDS_NUM)
-	    runningPosition = 0;
 	
 	value = 0;
-	double diffRunning = Math.abs(runningPosition - index);
-	double runingRadius = 1;
-	if (diffRunning < runingRadius && analyzer.levelSmooth < 0.02)
-	    value = (runingRadius - diffRunning) / runingRadius * 0.5;
-	
 	int from = (int) Math.round(spectrum.length * position);
 	int to = (int) Math.round(spectrum.length * (position + size));
 	if (to == from)
@@ -59,11 +50,5 @@ public class Band
 	    diff *= ((analyzer.levelSmooth + analyzer.levelSpring) * 0.5 + 0.1) * 0.2 + 0.1;
 
 	energySmooth += diff;
-    }
-
-    public double exp2(double t, double length)
-    {
-	double t2 = (t - length * position) / (length * size * 0.5);
-	return Math.exp(-(t2 * t2));
     }
 }

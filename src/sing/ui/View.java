@@ -496,38 +496,6 @@ public class View
 			model.showBands = theEvent.getValue() == 1 ? true : false;
 		    }
 		});
-
-	cp5.addSlider("offset")
-		.moveTo(SOUND)
-		.setMin(-0.5f)
-		.setMax(0.5f)
-		.setValue(-0.05f)
-		.setHeight(20)
-		.setPosition(10, 170)
-		.setSize(200, 20)
-		.addListener(new ControlListener() {
-		    public void controlEvent(ControlEvent theEvent)
-		    {
-			main.analyzer.offset = theEvent.getValue();
-		    }
-		})
-		.update();
-
-	cp5.addSlider("mul")
-		.moveTo(SOUND)
-		.setMin(0)
-		.setMax(10)
-		.setValue(1.00f)
-		.setHeight(20)
-		.setPosition(10, 210)
-		.setSize(200, 20)
-		.addListener(new ControlListener() {
-		    public void controlEvent(ControlEvent theEvent)
-		    {
-			main.analyzer.mul = theEvent.getValue();
-		    }
-		})
-		.update();
     }
 
     public class ToggleBlock
