@@ -1,15 +1,13 @@
 package sing.ui;
 
+import javax.media.jai.Interpolation;
+
 import sing.Config;
 import sing.Main;
-import sing.model.Programms;
-import sing.program.Interpolation;
 import controlP5.ControlEvent;
 import controlP5.ControlListener;
 import controlP5.ControlP5;
 import controlP5.ControlWindow;
-import controlP5.Slider;
-import controlP5.Textlabel;
 import controlP5.Toggle;
 
 public class View
@@ -22,12 +20,10 @@ public class View
 
     final Main main;
     ControlP5 cp5;
-    private final Programms model;
 
-    public View(Main main, Programms model)
+    public View(Main main)
     {
 	this.main = main;
-	this.model = model;
     }
 
     public void init()
@@ -40,13 +36,9 @@ public class View
 
 	cw.getTab("default").setHeight(20);
 	cw.addTab(SOUND).setHeight(20);
-	cw.addTab(CALIBRATE).setHeight(20);
-	cw.addTab(SHAPES).setHeight(20);
 
 	createDefaultTab();
 	createSoundTab();
-	createCalibrateTab();
-	createShapesTab();
 
 	cp5.end();
     }
@@ -86,242 +78,6 @@ public class View
 			loadSettings();
 		    }
 		});
-
-	cp5.addSlider(getNextName())
-		.setCaptionLabel("GLOBAL ALPHA")
-		.setMin(0.01f)
-		.setMax(5.0f)
-		.setValue(1.0f)
-		.setHeight(20)
-		.setPosition(10, 60)
-		.setSize(300, 20)
-		.addListener(new ControlListener() {
-		    public void controlEvent(ControlEvent theEvent)
-		    {
-			model.globalAlpha = theEvent.getValue();
-		    }
-		})
-		.update();
-
-	cp5.addSlider(getNextName())
-		.setCaptionLabel("GLOBAL POW")
-		.setMin(0.01f)
-		.setMax(20.0f)
-		.setValue(1.0f)
-		.setHeight(20)
-		.setPosition(10, 90)
-		.setSize(300, 20)
-		.addListener(new ControlListener() {
-		    public void controlEvent(ControlEvent theEvent)
-		    {
-			model.globalPow = theEvent.getValue();
-		    }
-		})
-		.update();
-
-	cp5.addToggle(getNextName())
-		.setCaptionLabel("HIDE VIEW")
-		.setValue(1)
-		.setSize(40, 20)
-		.setPosition(10, 130)
-		.addListener(new ControlListener() {
-		    public void controlEvent(ControlEvent theEvent)
-		    {
-			main.hideView = theEvent.getValue() == 1 ? true : false;
-		    }
-		}).update();
-    }
-
-    private void createShapesTab()
-    {
-	cp5.addToggle(getNextName())
-		.setCaptionLabel("SINGLE SMOOTH")
-		.moveTo(SHAPES)
-		.setValue(1)
-		.setSize(30, 20)
-		.setPosition(10, 30)
-		.addListener(new ControlListener() {
-		    public void controlEvent(ControlEvent theEvent)
-		    {
-			model.singleSmoothParticle.enabled = theEvent.getValue() == 1 ? true : false;
-		    }
-		}).update();
-
-	cp5.addToggle(getNextName())
-		.setCaptionLabel("Two Opposite Particles")
-		.moveTo(SHAPES)
-		.setValue(1)
-		.setSize(30, 20)
-		.setPosition(10, 70)
-		.addListener(new ControlListener() {
-		    public void controlEvent(ControlEvent theEvent)
-		    {
-			model.twoOppositeParticles.enabled = theEvent.getValue() == 1 ? true : false;
-		    }
-		}).update();
-
-	cp5.addToggle(getNextName())
-		.setCaptionLabel("VLines")
-		.moveTo(SHAPES)
-		.setValue(1)
-		.setSize(30, 20)
-		.setPosition(10, 110)
-		.addListener(new ControlListener() {
-		    public void controlEvent(ControlEvent theEvent)
-		    {
-			model.vlines.enabled = theEvent.getValue() == 1 ? true : false;
-		    }
-		}).update();
-
-	cp5.addToggle(getNextName())
-		.setCaptionLabel("Flash")
-		.moveTo(SHAPES)
-		.setValue(1)
-		.setSize(30, 20)
-		.setPosition(10, 150)
-		.addListener(new ControlListener() {
-		    public void controlEvent(ControlEvent theEvent)
-		    {
-			model.flash.enabled = theEvent.getValue() == 1 ? true : false;
-		    }
-		}).update();
-
-	cp5.addToggle(getNextName())
-		.setCaptionLabel("Bands")
-		.moveTo(SHAPES)
-		.setValue(1)
-		.setSize(30, 20)
-		.setPosition(10, 190)
-		.addListener(new ControlListener() {
-		    public void controlEvent(ControlEvent theEvent)
-		    {
-			model.bands.enabled = theEvent.getValue() == 1 ? true : false;
-		    }
-		}).update();
-
-	cp5.addToggle(getNextName())
-		.setCaptionLabel("Flash2")
-		.moveTo(SHAPES)
-		.setValue(1)
-		.setSize(30, 20)
-		.setPosition(10, 230)
-		.addListener(new ControlListener() {
-		    public void controlEvent(ControlEvent theEvent)
-		    {
-			model.flash2.enabled = theEvent.getValue() == 1 ? true : false;
-		    }
-		})
-		.update();
-
-    }
-
-    private void createCalibrateTab()
-    {
-	cp5.addToggle(getNextName())
-		.setCaptionLabel("ENABLED")
-		.moveTo(CALIBRATE)
-		.setValue(0)
-		.setSize(30, 20)
-		.setPosition(10, 30)
-		.addListener(new ControlListener() {
-		    public void controlEvent(ControlEvent theEvent)
-		    {
-			model.calibrate.enabled = theEvent.getValue() == 1 ? true : false;
-		    }
-		})
-		.update();
-
-	final Toggle pow = cp5.addToggle(getNextName());
-	final Toggle linear = cp5.addToggle(getNextName());
-	final ToggleBlock powBlock = new ToggleBlock();
-	final ToggleBlock linearBlock = new ToggleBlock();
-
-	pow.setCaptionLabel("SQRT")
-		.moveTo(CALIBRATE)
-		.setValue(0)
-		.setSize(30, 20)
-		.setPosition(60, 30)
-		.addListener(new ControlListener() {
-		    public void controlEvent(ControlEvent theEvent)
-		    {
-			if (powBlock.isFree())
-			{
-			    linearBlock.enable();
-			    model.calibrate.mode = Interpolation.POW;
-			    linear.setValue(false);
-			    linearBlock.disable();
-			}
-		    }
-		});
-
-	linear.setCaptionLabel("LINEAR")
-		.moveTo(CALIBRATE)
-		.setValue(1)
-		.setSize(30, 20)
-		.setPosition(95, 30)
-		.addListener(new ControlListener() {
-		    public void controlEvent(ControlEvent theEvent)
-		    {
-			if (linearBlock.isFree())
-			{
-			    powBlock.enable();
-			    model.calibrate.mode = Interpolation.LINEAR;
-			    pow.setValue(false);
-			    powBlock.disable();
-			}
-		    }
-		});
-
-	cp5.addSlider(getNextName())
-		.setCaptionLabel("AZIMUTH")
-		.moveTo(CALIBRATE)
-		.setMin(-180)
-		.setMax(180)
-		.setValue(0.0f)
-		.setHeight(20)
-		.setPosition(10, 70)
-		.setSize(300, 20)
-		.addListener(new ControlListener() {
-		    public void controlEvent(ControlEvent theEvent)
-		    {
-			model.calibrate.reference.positionS.azimuth = theEvent.getValue() * Math.PI / 180.0;
-		    }
-		})
-		.update();
-
-	cp5.addSlider(getNextName())
-		.setCaptionLabel("INCLINATION")
-		.moveTo(CALIBRATE)
-		.setMin(0)
-		.setMax(180)
-		.setValue(90.0f)
-		.setHeight(20)
-		.setPosition(10, 100)
-		.setSize(300, 20)
-		.addListener(new ControlListener() {
-		    public void controlEvent(ControlEvent theEvent)
-		    {
-			model.calibrate.reference.positionS.inclination = theEvent.getValue() * Math.PI / 180.0;
-		    }
-		})
-		.update();
-
-	cp5.addSlider(getNextName())
-		.setCaptionLabel("RADIUS")
-		.moveTo(CALIBRATE)
-		.setMin(0.0f)
-		.setMax(2.0f)
-		.setValue(0.6f)
-		.setHeight(20)
-		.setPosition(10, 130)
-		.setSize(300, 20)
-		.addListener(new ControlListener() {
-		    public void controlEvent(ControlEvent theEvent)
-		    {
-			model.calibrate.reference.radius = theEvent.getValue();
-		    }
-		})
-		.update();
     }
 
     private String getNextName()
@@ -480,22 +236,10 @@ public class View
 		.addListener(new ControlListener() {
 		    public void controlEvent(ControlEvent theEvent)
 		    {
-			main.analyzer.smoothing = theEvent.getValue() == 1 ? true :false;
+			main.analyzer.smoothing = theEvent.getValue() == 1 ? true : false;
 		    }
 		})
 		.update();
-
-	cp5.addToggle(getNextName())
-		.moveTo(SOUND)
-		.setCaptionLabel("show bands")
-		.setPosition(10, 130)
-		.setSize(50, 20)
-		.addListener(new ControlListener() {
-		    public void controlEvent(ControlEvent theEvent)
-		    {
-			model.showBands = theEvent.getValue() == 1 ? true : false;
-		    }
-		});
     }
 
     public class ToggleBlock

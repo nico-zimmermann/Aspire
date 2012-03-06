@@ -83,8 +83,6 @@ public class Analyzer
 	{
 	    waveform[i + Config.WAVEFORM_SIZE - Config.SAMPLE_SIZE] = myInput.buffer[i];
 	}
-
-	// doAnalysis();
     }
 
     synchronized public void setSerialInput(int[] newWaveform)
@@ -163,9 +161,10 @@ public class Analyzer
 
     public void iterateBands()
     {
+	double increment = 1.0;
 	double scale = (float) Config.SAMPLING_RATE / Config.WAVEFORM_SIZE;
-	int fromTone = 0;
-	int toTone = fromTone + 1;
+	double fromTone = 0;
+	double toTone = fromTone + increment;
 	for (Band band : bands)
 	{
 	    band.position = 0;
@@ -179,7 +178,7 @@ public class Analyzer
 		double v1 = (frequency1 / scale) / spectrum.length;
 		band.position = v0;
 		band.size = (v1 - v0);
-		toTone++;
+		toTone += increment;
 	    }
 	    band.compute(spectrum);
 	    fromTone = toTone;
@@ -196,25 +195,5 @@ public class Analyzer
 
 	level = newLevel;
 	levelSmooth += (level - levelSmooth) * 0.01;
-    }
-
-    public double highBands()
-    {
-	double result = 0;
-	for (int index = Config.BANDS_NUM / 2; index < Config.BANDS_NUM; index++)
-	{
-	    result += bands.get(index).valueSmooth;
-	}
-	return result;
-    }
-
-    public double lowBands()
-    {
-	double result = 0;
-	for (int index = 0; index < Config.BANDS_NUM / 2; index++)
-	{
-	    result += bands.get(index).valueSmooth;
-	}
-	return result;
     }
 }

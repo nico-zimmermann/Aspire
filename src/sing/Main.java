@@ -1,17 +1,20 @@
 package sing;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import java.io.File;
+import java.io.IOException;
 
 import krister.Ess.AudioInput;
+
+import org.codehaus.jackson.JsonEncoding;
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonGenerator;
+
 import processing.core.PApplet;
 import processing.serial.Serial;
 import sing.model.Analyzer;
 import sing.model.Band;
-import sing.model.Particle;
-import sing.model.Programms;
-import sing.remote.PortLights;
+import sing.remote.BandWriter;
 import sing.remote.PortWaveform;
 import sing.ui.View;
 
@@ -19,22 +22,16 @@ public class Main extends PApplet
 {
     public Analyzer analyzer;
 
-    PortLights portLights;
     PortWaveform portWaveform;
     View view;
-    Programms model;
 
     private int lastLoopStart;
 
     private int lastDrawDuration;
 
-    public boolean inDraw;
-
-    public boolean waitForModelDraw;
-
-    public boolean hideView;
-
     private int soundStart;
+
+    private BandWriter bandWriter;
 
     public void setup()
     {
@@ -43,71 +40,47 @@ public class Main extends PApplet
 	size(512 + 70, 600);
 	background(0);
 	textFont(createFont("Monaco", 10));
-	
+
 	System.out.println("WAVEFORM_SIZE: " + Config.WAVEFORM_SIZE);
 	System.out.println("SAMPLE_SIZE: " + Config.SAMPLE_SIZE);
 
 	analyzer = new Analyzer(this);
 
-	model = new Programms();
-	model.main = this;
-	model.analyzer = analyzer;
-	model.calibrateLED(0, 45, 90 + 22);
-	model.calibrateLED(1, -90 / 4 * 3, 90);
-	model.calibrateLED(2, 45 + 10, 90 - 45);
-	model.calibrateLED(3, 0, 90);
-	model.calibrateLED(4, 180 - 10, 90 - 45 - 20);
-	model.calibrateLED(5, 180 - 45 + 10, 90);
-	model.calibrateLED(6, -180 + 22, 90 - 10);
-	model.calibrateLED(7, 90, 90 - 15);
-	model.calibrateLED(8, -40, 90 - 45);
-	model.calibrateLED(9, -180 + 45 + 20, 45 + 10);
-	model.initPrograms();
-
 	println(Serial.list());
-
-	portLights = new PortLights(this, "/dev/tty.usbmodemfa131");
-	portLights.createPort();
 
 	portWaveform = new PortWaveform(this, "/dev/tty.usbmodemfd121");
 	portWaveform.createPort();
 
-	view = new View(this, model);
+	view = new View(this);
 	view.init();
 
 	view.loadSettings();
+	
+	bandWriter = new BandWriter();
+	bandWriter.analyzer = analyzer;
+	bandWriter.prepare();
     }
 
     public void exit()
     {
 	view.saveSettings();
-	portLights.exit();
 	portWaveform.exit();
-    }
-
-    public void iterate()
-    {
-	model.millis = millis();
-	model.iterate();
-
-	portLights.setRGBs(model.rgb);
-
-	analyzer.iterate();
+	bandWriter.close();
     }
 
     public void draw()
     {
+	frameRate(30);
+	background(0);
+
 	analyzer.doAnalysis();
-	frameRate(hideView ? 10 : 30);
+	analyzer.iterate();
+	bandWriter.writeBands();
 	measureStats();
 	background(0);
-	if (!hideView)
-	{
-	    drawAudio();
-	    drawStats();
-	    drawBands();
-	    drawModel();
-	}
+	drawAudio();
+	drawStats();
+	drawBands();
     }
 
     public void handleWaveform()
@@ -130,7 +103,6 @@ public class Main extends PApplet
 	    textAlign(LEFT);
 	    textSize(10);
 	    text("SOUND: " + portWaveform.lastLoopDuration + "ms", 12, 21);
-	    text("LIGHT: " + portLights.lastLoopDuration + "ms " + (int) (1000.0 / portLights.lastLoopDuration) + "/s", 12, 31);
 	    text("DRAW : " + lastDrawDuration + "ms " + (int) (1000.0 / lastDrawDuration) + "/s", 12, 41);
 
 	    stroke(Config.COLOR_MEDIUM);
@@ -138,104 +110,16 @@ public class Main extends PApplet
 	    rect(115, 2 + 20, 149, 8);
 	    rect(115, 2 + 30, 149, 8);
 	    fill(Config.COLOR_BRIGHT);
-	    rect(115, 2 + 20, 149 * map(1000 / portLights.lastLoopDuration, 0, 60, 0, 1), 8);
 	    rect(115, 2 + 30, 149 * map(1000 / lastDrawDuration, 0, 60, 0, 1), 8);
 	    noFill();
-
 	} catch (Exception e)
 	{
-	}
-    }
-
-    private void drawModel()
-    {
-	ArrayList<Particle> particles = new ArrayList<Particle>();
-	particles.addAll(model.particles2);
-	int width = 255;
-	int height = 255;
-
-	int offsetX1 = 10;
-	int offsetY1 = 335;
-
-	int cx1 = offsetX1 + width / 2;
-	int cy1 = offsetY1 + height / 2;
-
-	int offsetX2 = 10 + 255 + 10;
-	int offsetY2 = 335;
-
-	int cx2 = offsetX2 + width / 2;
-	int cy2 = offsetY2 + height / 2;
-
-	fill(0);
-	stroke(Config.COLOR_MEDIUM);
-	rect(offsetX1, offsetY1, width, height);
-	rect(offsetX2, offsetY2, width, height);
-
-	stroke(Config.COLOR_DARK);
-	ellipse(cx1, cy1, 200, 200);
-	ellipse(cx2, cy2, 200, 200);
-
-	stroke(Config.COLOR_MEDIUM);
-
-	if (lowPerformance())
-	    return;
-	Collections.sort(particles, new Comparator<Particle>()
-	{
-	    @Override
-	    public int compare(Particle p0, Particle p1)
-	    {
-		double z0 = p0.position.z;
-		double z1 = p1.position.z;
-		if (z0 < z1)
-		    return -1;
-		else if (z0 > z1)
-		    return 1;
-		else
-		    return 0;
-	    }
-
-	});
-	for (Particle particle : particles)
-	{
-	    if (lowPerformance())
-		return;
-	    drawParticle(particle, particle.position.x * 100 + cx1, particle.position.y * 100 + cy1, particle.radius * 100 * map(particle.position.z, -1, 1, 0.9, 1.1));
-	}
-
-	Collections.sort(particles, new Comparator<Particle>()
-	{
-	    @Override
-	    public int compare(Particle p0, Particle p1)
-	    {
-		double z0 = p0.position.y;
-		double z1 = p1.position.y;
-		if (z0 < z1)
-		    return -1;
-		else if (z0 > z1)
-		    return 1;
-		else
-		    return 0;
-	    }
-
-	});
-
-	for (Particle particle : particles)
-	{
-	    if (lowPerformance())
-		return;
-	    drawParticle(particle, particle.position.x * 100 + cx2, -particle.position.z * 100 + cy2, particle.radius * 100 * map(particle.position.y, -1, 1, 0.9, 1.1));
 	}
     }
 
     public double map(double y, double i, double j, double d, double e)
     {
 	return map((float) y, (float) i, (float) j, (float) d, (float) e);
-    }
-
-    private void drawParticle(Particle particle, double x, double y, double radius)
-    {
-	fill(particle.color.r, particle.color.g, particle.color.b, particle.color.alpha);
-	ellipse(x, y, radius + 1, radius + 1);
     }
 
     private boolean lowPerformance()
@@ -278,7 +162,7 @@ public class Main extends PApplet
 
 	// waveform
 	stroke(Config.COLOR_BRIGHT);
-	int scale =analyzer.waveform.length / 256;
+	int scale = analyzer.waveform.length / 256;
 	for (int i = 0; i < 255; i++)
 	{
 	    line(i + 10, analyzer.waveform[i * scale] * 128 + 128 + 10, i + 1 + 10, analyzer.waveform[(i + 1) * scale] * 128 + 128 + 10);
@@ -306,8 +190,6 @@ public class Main extends PApplet
 	    stroke(Config.COLOR_BRIGHT);
 	    line(i + 256 + 20, (float) (255 - analyzer.spectrum[i * scale] * 255 + 10), i + 256 + 20, 255 + 10);
 	}
-	//System.out.println((mouseX - 256 - 20) / 2); 
-
     }
 
     public void drawBands()
@@ -316,36 +198,27 @@ public class Main extends PApplet
 	int index = 0;
 	for (Band band : analyzer.bands)
 	{
-	    float v = (float) (255.0f * (band.energy * 2 + 0.05));
+	    float v = (float) (255.0f * (band.value * 2 + 0.05));
 	    stroke(Config.COLOR_BRIGHT, v);
 
-	    float size = 6.4f;
+	    float size = 6.35f;
 	    float xOffset = size / 2 + index * size + 10;
 
 	    float x = (float) (band.position * Config.WAVEFORM_SIZE) * 1 + 255 + 20;
 	    float bsize = (float) (band.size * Config.WAVEFORM_SIZE);
 
-	    if (model.showBands)
-	    {
-		noFill();
-		stroke(0xffff0000);
-		line(x, 10, x, 255 + 10);
-		stroke(0xff00ff00);
-		line(x + bsize, 10, x + bsize, 255 + 10);
-	    }
+	    noFill();
+	    stroke(0xffff0000);
+	    // line(x, 10, x, 255 + 10);
+	    stroke(0xff00ff00);
+	    // line(x + bsize, 10, x + bsize, 255 + 10);
 
 	    float value = (float) band.value;
-	    stroke(Config.COLOR_MEDIUM, 255 * (value * 2 + 0.5f));
+	    stroke(Config.COLOR_MEDIUM, 255 * (value + 0.2f));
 	    fill(0);
-	    ellipse(xOffset, 297, size, size);
+	    ellipse(xOffset, 297 + 150, size, size + value * 180.0);
 	    fill(Config.COLOR_BRIGHT, 255 * value);
-	    ellipse(xOffset, 297, size, size);
-	    ellipse(xOffset, 297, size, size);
-
-	    float value2 = (float) band.energySmooth * 1.0f;
-	    stroke(Config.COLOR_MEDIUM, 255 * (value2 * 2 + 0.5f));
-	    fill(Config.COLOR_BRIGHT, 255 * value2);
-	    ellipse(xOffset, 320, size, size);
+	    ellipse(xOffset, 297 + 150, size, size + value * 180.0);
 
 	    int scale = 1;
 	    if (index % scale == 0)

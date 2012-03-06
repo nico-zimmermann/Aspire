@@ -7,7 +7,7 @@ public class Config
     public static final int WAVEFORM_SIZE = (int) Math.pow(2, 12);
     public static final int SAMPLE_SIZE = (int) Math.pow(2, 8);
     public static final int SPECTRUM_SIZE = WAVEFORM_SIZE / 2;
-    public static final int BANDS_NUM = 75;
+    public static final int BANDS_NUM = 89;
 
     public static final int COLOR_BRIGHT = 0xff20c2ff;
     public static final int COLOR_MEDIUM = 0xff00497c;

@@ -1,11 +1,8 @@
 package sing.remote;
 
-import java.util.ArrayList;
-
 import processing.serial.Serial;
 import sing.Config;
 import sing.Main;
-import sing.model.Color;
 
 public class PortWaveform extends Thread
 {
